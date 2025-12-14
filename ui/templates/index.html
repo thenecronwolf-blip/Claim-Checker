@@ -3,54 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claim Assessment API</title>
+    <title>Claim Checker</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 40px; }
-        h1 { font-size: 2.5em; margin-bottom: 10px; }
-        p { font-size: 1.2em; max-width: 800px; margin: 20px auto; }
-        .container { max-width: 800px; margin: 0 auto; }
-        textarea { width: 100%; height: 150px; padding: 10px; margin: 20px 0; background: #333; color: #fff; border: 1px solid #555; border-radius: 8px; }
-        button { padding: 12px 24px; font-size: 1.1em; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        button:hover { background: #45a049; }
-        pre { background: #333; padding: 20px; text-align: left; border-radius: 8px; overflow-x: auto; margin: 20px 0; }
-        .status { font-size: 1.1em; margin: 20px 0; color: #4CAF50; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1e1e2f;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #9b59b6;
+        }
+        textarea {
+            width: 100%;
+            max-width: 600px;
+            height: 120px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #9b59b6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #8e44ad;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            max-width: 600px;
+            padding: 15px;
+            background: #2c2c3e;
+            border-radius: 5px;
+            word-wrap: break-word;
+            min-height: 50px;
+        }
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid #2c2c3e;
+            border-top: 4px solid #9b59b6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Claim Assessment API</h1>
-        <p class="status">Status: online ✅</p>
-        <p>A free tool to detect potential bias in news stories or claims, with confidence-weighted verdicts.<br>
-        Built with Flask + Hugging Face – your 6th Grok-related project!</p>
-
-        <h2>Try it now</h2>
-        <form id="analyzeForm">
-            <textarea name="text" placeholder="Paste a news claim or story here..." required></textarea><br>
-            <button type="submit">Analyze Claim</button>
-        </form>
-
-        <div id="result"></div>
-
-        <h2>How to use the API</h2>
-        <p>POST to <code>/analyze</code> with JSON: <code>{"text": "your claim here"}</code></p>
-        <p>Example cURL:</p>
-        <pre>curl -X POST https://claim-checker.onrender.com/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Example news headline or claim"}'</pre>
-    </div>
+    <h1>Claim Checker</h1>
+    <textarea id="inputText" placeholder="Enter text to analyze..."></textarea>
+    <button id="analyzeBtn" onclick="analyzeText()">Analyze</button>
+    
+    <div class="spinner" id="spinner"></div>
+    <div id="result"></div>
 
     <script>
-        document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = e.target.text.value;
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
-            });
-            const data = await response.json();
-            document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-        });
+        async function analyzeText() {
+            const text = document.getElementById('inputText').value.trim();
+            if (!text) {
+                document.getElementById('result').innerHTML = "Please enter some text to analyze.";
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            const spinner = document.getElementById('spinner');
+            const btn = document.getElementById('analyzeBtn');
+
+            // Show loading state
+            resultDiv.innerHTML = "";
+            spinner.style.display = "block";
+            btn.disabled = true;
+            btn.textContent = "Analyzing...";
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `<pre>${JSON.stringify(data.result, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `Error: ${data.error || 'Something went wrong'}`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `Connection error: ${err.message}`;
+            } finally {
+                // Hide loading state
+                spinner.style.display = "none";
+                btn.disabled = false;
+                btn.textContent = "Analyze";
+            }
+        }
     </script>
 </body>
 </html>
