@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examples - Claim Checker</title>
+    <style>
+        /* Same styles as index.html for consistency */
+        body { font-family: Arial, sans-serif; background: #1e1e2f; color: #e0e0e0; padding: 50px; }
+        a { color: #9b59b6; text-decoration: none; } a:hover { text-decoration: underline; }
+        nav { margin-bottom: 40px; }
+        nav a { margin: 0 15px; font-size: 1.1em; }
+        h1, h2 { color: #9b59b6; text-align: center; }
+        .example { background: #2c2c3e; padding: 20px; margin: 20px auto; max-width: 700px; border-radius: 8px; }
+        pre { background: #333; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/examples">Examples</a>
+        <a href="/about">About</a>
+        <a href="/docs">API Docs</a>
+    </nav>
+
+    <h1>Examples</h1>
+    <p>See how the Claim Checker analyzes real-world statements.</p>
+
+    <div class="example">
+        <h2>Claim:</h2>
+        <p>"Climate change is a hoax invented by China."</p>
+        <h2>Result:</h2>
+        <pre>{
+  "bias_score": 0.92,
+  "confidence": 0.87,
+  "verdict": "High potential for political bias / misinformation"
+}</pre>
+    </div>
+
+    <div class="example">
+        <h2>Claim:</h2>
+        <p>"Vaccines cause autism."</p>
+        <h2>Result:</h2>
+        <pre>{
+  "bias_score": 0.88,
+  "confidence": 0.91,
+  "verdict": "Common debunked claim with strong anti-science bias"
+}</pre>
+    </div>
+
+    <!-- Add more examples as you like -->
+</body>
+</html>
