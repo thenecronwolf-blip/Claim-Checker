@@ -10,6 +10,6 @@ app = Flask(
 def home():
     return render_template("index.html")
 
-@app.route("/health")
+@app.route('/health', endpoint='health_check')  # Explicit unique endpoint
 def health():
-    return jsonify({"status": "ok"})
+    return "OK", 200
