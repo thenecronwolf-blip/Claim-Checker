@@ -1,4 +1,6 @@
-.env
 __pycache__/
 *.pyc
-.DS_Store
+.env
+*.pkl
+*.h5
+*.db
