@@ -2,9 +2,8 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from huggingface_hub import InferenceClient
 
-# Load HF API key from environment
 HF_API_KEY = os.getenv("HF_API_KEY")
-client = InferenceClient(token=HF_API_KEY)
+client = None  # We will initialize on first request
 
 app = Flask(__name__, static_folder="../ui", static_url_path="")
 
@@ -13,7 +12,13 @@ app = Flask(__name__, static_folder="../ui", static_url_path="")
 def index():
     return send_from_directory(app.static_folder, "index.html")
 
-# Example HF endpoint
+# Lazy-loading HF model
+def get_client():
+    global client
+    if client is None:
+        client = InferenceClient(token=HF_API_KEY)
+    return client
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     data = request.json
@@ -22,7 +27,11 @@ def analyze():
         return jsonify({"error": "No text provided"}), 400
     
     try:
-        result = client.text_classification(model="distilbert-base-uncased-finetuned-sst-2-english", inputs=text)
+        hf_client = get_client()
+        result = hf_client.text_classification(
+            model="distilbert-base-uncased-finetuned-sst-2-english",
+            inputs=text
+        )
         return jsonify({"result": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
