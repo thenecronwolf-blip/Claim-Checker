@@ -47,5 +47,6 @@ jobs:
         uses: railwayapp/railway-action@v1
         with:
           apiKey: ${{ secrets.RAILWAY_API_KEY }}
-          projectId: <YOUR_PROJECT_ID>
-          serviceId: <YOUR_SERVICE_ID>
+          projectId: ${{ secrets.RAILWAY_PROJECT_ID }}
+          serviceId: ${{ secrets.RAILWAY_SERVICE_ID }}
+          environment: production
