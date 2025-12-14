@@ -1,11 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Claim Assessment</title>
-  <link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Assessment API</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 40px; }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        p { font-size: 1.2em; max-width: 800px; margin: 20px auto; }
+        .container { max-width: 800px; margin: 0 auto; }
+        textarea { width: 100%; height: 150px; padding: 10px; margin: 20px 0; background: #333; color: #fff; border: 1px solid #555; border-radius: 8px; }
+        button { padding: 12px 24px; font-size: 1.1em; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        pre { background: #333; padding: 20px; text-align: left; border-radius: 8px; overflow-x: auto; margin: 20px 0; }
+        .status { font-size: 1.1em; margin: 20px 0; color: #4CAF50; }
+    </style>
 </head>
 <body>
-  <h1>Claim Assessment API</h1>
-  <p>Status: online</p>
+    <div class="container">
+        <h1>Claim Assessment API</h1>
+        <p class="status">Status: online ✅</p>
+        <p>A free tool to detect potential bias in news stories or claims, with confidence-weighted verdicts.<br>
+        Built with Flask + Hugging Face – your 6th Grok-related project!</p>
+
+        <h2>Try it now</h2>
+        <form id="analyzeForm">
+            <textarea name="text" placeholder="Paste a news claim or story here..." required></textarea><br>
+            <button type="submit">Analyze Claim</button>
+        </form>
+
+        <div id="result"></div>
+
+        <h2>How to use the API</h2>
+        <p>POST to <code>/analyze</code> with JSON: <code>{"text": "your claim here"}</code></p>
+        <p>Example cURL:</p>
+        <pre>curl -X POST https://claim-checker.onrender.com/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Example news headline or claim"}'</pre>
+    </div>
+
+    <script>
+        document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = e.target.text.value;
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const data = await response.json();
+            document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        });
+    </script>
 </body>
 </html>
