@@ -1,0 +1,8 @@
+fastapi
+Flask
+gunicorn
+uvicorn
+requests
+huggingface-hub
+pydantic
+slowapi
