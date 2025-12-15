@@ -14,10 +14,8 @@
             align-items: center;
             padding: 50px;
             margin: 0;
+            min-height: 100vh; /* Ensures footer stays at bottom */
         }
-        h1 { color: #9b59b6; font-size: 2.5em; margin-bottom: 10px; }
-        .subtitle { color: #888; margin-bottom: 30px; }
-        
         textarea {
             width: 100%;
             max-width: 600px;
@@ -28,11 +26,11 @@
             background: #2c2c3e;
             color: white;
             font-size: 16px;
-            transition: border 0.3s;
+            margin-bottom: 20px;
             outline: none;
         }
         textarea:focus { border-color: #9b59b6; }
-
+        
         button {
             background: #9b59b6;
             color: white;
@@ -42,235 +40,128 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            margin-top: 20px;
-            transition: transform 0.2s, background 0.2s;
+            transition: transform 0.2s;
         }
-        button:hover { background: #8e44ad; transform: translateY(-2px); }
-        button:disabled { background: #666; cursor: not-allowed; }
-
-        #result {
-            margin-top: 30px;
-            width: 100%;
-            max-width: 600px;
-            opacity: 0;
-            transition: opacity 0.5s ease-in;
-        }
-
+        button:hover { transform: translateY(-2px); background: #8e44ad; }
+        button:disabled { background: #666; cursor: wait; transform: none; }
+        
         .meter-container {
-            width: 100%;
-            background: #333;
-            border-radius: 10px;
-            height: 12px;
-            margin: 10px 0;
-            overflow: hidden;
+            width: 100%; background: #333; height: 10px; border-radius: 5px; margin-top: 5px;
         }
         .meter-fill {
-            height: 100%;
-            width: 0%;
-            transition: width 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 100%; width: 0%; transition: width 1s ease; border-radius: 5px;
         }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 10px;
-        }
-
+        #result { opacity: 0; transition: opacity 0.5s; margin-top: 20px; max-width: 600px; width: 100%; }
+        
+        /* Spinner */
         .spinner {
-            border: 4px solid #2c2c3e;
-            border-top: 4px solid #9b59b6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-            display: none;
+            border: 4px solid #333; border-top: 4px solid #9b59b6; border-radius: 50%;
+            width: 30px; height: 30px; animation: spin 1s linear infinite;
+            margin: 20px auto; display: none;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <nav style="margin-bottom: 40px; text-align: center;">
-        <a href="/" style="color: #9b59b6; margin: 0 20px; text-decoration: none; font-weight: bold;">Home</a>
-        <a href="/examples" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">Examples</a>
-        <a href="/about" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">About</a>
-        <a href="/docs" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">API Docs</a>
+
+    <nav style="margin-bottom: 40px;">
+        <a href="/" style="color:#9b59b6; margin:0 15px; text-decoration:none; font-weight:bold;">Home</a>
+        <a href="/examples" style="color:#9b59b6; margin:0 15px; text-decoration:none;">Examples</a>
+        <a href="/about" style="color:#9b59b6; margin:0 15px; text-decoration:none;">About</a>
     </nav>
-    
-    <h1>Claim Checker</h1>
-    <p class="subtitle">AI-powered objectivity and bias analysis</p>
-    
-    <textarea id="inputText" placeholder="Paste a claim, news snippet, or statement here..."></textarea>
-    <button id="analyzeBtn" onclick="analyzeText()">Analyze Statement</button>
+
+    <h1 style="color:#9b59b6;">Claim Checker</h1>
+    <textarea id="inputText" placeholder="Paste a claim here..."></textarea>
+    <button id="analyzeBtn" onclick="startAnalysis()">Analyze</button>
     
     <div class="spinner" id="spinner"></div>
     <div id="result"></div>
 
+    <div style="flex-grow: 1;"></div> <footer style="margin-top: 60px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%; max-width: 800px;">
+        <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
+        <p>
+            <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">GitHub</a> • 
+            <a href="/docs" style="color: #9b59b6; text-decoration: none;">API Access</a>
+        </p>
+        <p>© 2025 Grok System Development</p>
+    </footer>
+
     <script>
-    // Global function to copy report
-    function copyReport() {
-        const verdict = document.getElementById('verdictText').innerText;
-        const confidence = document.getElementById('confValue').innerText;
-        const text = `🔍 Claim Analysis Report\nVerdict: ${verdict}\nConfidence: ${confidence}%\nVerified via Claim-Checker.onrender.com`;
-        
-        navigator.clipboard.writeText(text).then(() => {
-            alert("Report copied to clipboard!");
-        });
-    }
+        async function startAnalysis() {
+            const text = document.getElementById('inputText').value.trim();
+            const resultDiv = document.getElementById('result');
+            const spinner = document.getElementById('spinner');
+            const btn = document.getElementById('analyzeBtn');
 
-async function analyzeText() {
-    // ... setup ...
-    const fetchAnalysis = async () => {
-        return await fetch('/analyze', {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ text })
-        });
-    };
-
-    let attempts = 0;
-    const maxAttempts = 5;
-
-    while (attempts < maxAttempts) {
-        try {
-            const response = await fetchAnalysis();
-            
-            // If 503, the server is telling us to wait.
-            if (response.status === 503) {
-                const data = await response.json();
-                const waitTime = data.estimated_time || 20;
-                
-                btn.textContent = `AI Waking Up... (${waitTime.toFixed(0)}s)`;
-                
-                // Wait here in the browser, NOT on the server
-                await new Promise(r => setTimeout(r, (waitTime * 1000)));
-                attempts++;
-                continue; // Loop back and try again
+            if (!text) {
+                alert("Please enter some text first!");
+                return;
             }
 
-            // If success, show results and break loop
-            if (response.ok) {
+            resultDiv.style.opacity = "0";
+            spinner.style.display = "block";
+            btn.disabled = true;
+            btn.textContent = "Analyzing...";
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
                 const data = await response.json();
-                // ... Render your result HTML here ...
-                return; 
+
+                if (!response.ok) {
+                    // Check for "Model loading" specific error
+                    if (response.status === 503 && data.error === "Model loading") {
+                         throw new Error(`AI is warming up (approx ${Math.ceil(data.estimated_time)}s). Please try again in a moment.`);
+                    }
+                    throw new Error(data.error || `Server Error: ${response.status}`);
+                }
+
+                renderSuccess(data.result, resultDiv);
+
+            } catch (err) {
+                resultDiv.innerHTML = `<p style="color: #ff6b6b; text-align: center; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 8px;">${err.message}</p>`;
+                resultDiv.style.opacity = "1";
+            } finally {
+                spinner.style.display = "none";
+                btn.disabled = false;
+                btn.textContent = "Analyze";
             }
-        } catch (e) {
-            console.error(e);
-        }
-    }
-    
-    resultDiv.innerHTML = "Server timed out. Please try again.";
-}
-
-    resultDiv.style.opacity = "0";
-    spinner.style.display = "block";
-    btn.disabled = true;
-    btn.textContent = "Connecting to AI...";
-
-    // Helper function to handle the fetch
-    const fetchAnalysis = async () => {
-        const response = await fetch('/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
-        });
-        return response;
-    };
-
-    try {
-        let response = await fetchAnalysis();
-        let data = await response.json();
-
-        // If the model is loading (503), wait 10 seconds and try one more time automatically
-        if (response.status === 503) {
-            btn.textContent = "AI Warming Up (10s)...";
-            await new Promise(resolve => setTimeout(resolve, 10000));
-            response = await fetchAnalysis();
-            data = await response.json();
         }
 
-        if (response.ok) {
-            const res = data.result;
-            const biasColor = res.bias_score > 0.6 ? '#f44336' : res.bias_score > 0.3 ? '#ffeb3b' : '#4caf50';
+        function renderSuccess(res, container) {
+            const biasColor = res.bias_score > 0.5 ? '#f44336' : '#4caf50';
             
-            resultDiv.innerHTML = `
-                <div style="background: #2c2c3e; padding: 25px; border-radius: 15px; border: 1px solid #444;">
-                    <h3 style="margin: 0 0 20px 0; color: #9b59b6; border-bottom: 1px solid #444; padding-bottom: 10px;">Analysis Report</h3>
-                    <div style="margin-bottom: 25px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
-                            <span>Bias Intensity</span>
-                            <span style="color: ${biasColor}">${(res.bias_score * 100).toFixed(0)}%</span>
-                        </div>
-                        <div class="meter-container"><div id="biasMeter" class="meter-fill" style="background: ${biasColor};"></div></div>
+            container.innerHTML = `
+                <div style="background: #2c2c3e; padding: 25px; border-radius: 12px; border: 1px solid #444;">
+                    <h3 style="margin-top:0; color:#9b59b6;">Analysis Complete</h3>
+                    
+                    <p><strong>Bias Score:</strong> ${(res.bias_score * 100).toFixed(0)}%</p>
+                    <div class="meter-container"><div class="meter-fill" style="width:${res.bias_score * 100}%; background:${biasColor}"></div></div>
+                    
+                    <p><strong>Confidence:</strong> ${(res.confidence * 100).toFixed(0)}%</p>
+                    <div class="meter-container"><div class="meter-fill" style="width:${res.confidence * 100}%; background:#9b59b6"></div></div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #1e1e2f; border-radius: 8px;">
+                        <strong>Verdict:</strong>
+                        <p id="typewriterText" style="margin: 5px 0 0 0;">${res.verdict}</p>
                     </div>
-                    <div style="margin-bottom: 25px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
-                            <span>AI Confidence</span>
-                            <span><span id="confValue">${(res.confidence * 100).toFixed(0)}</span>%</span>
-                        </div>
-                        <div class="meter-container"><div id="confMeter" class="meter-fill" style="background: #9b59b6;"></div></div>
-                    </div>
-                    <div style="background: #1e1e2f; padding: 15px; border-radius: 10px;">
-                        <strong style="color: #888; font-size: 0.8em; text-transform: uppercase;">Verdict</strong>
-                        <p id="verdictText" style="margin: 10px 0 0 0; line-height: 1.5; min-height: 1.5em;"></p>
-                    </div>
-                    <button onclick="copyReport()" style="background: #333; font-size: 0.8em; margin-top: 20px; padding: 8px 15px; border-radius: 20px; color: #ccc; border: 1px solid #444;">📋 Copy Report</button>
                 </div>
             `;
-            
-            resultDiv.style.opacity = "1";
-            setTimeout(() => {
-                document.getElementById('biasMeter').style.width = (res.bias_score * 100) + "%";
-                document.getElementById('confMeter').style.width = (res.confidence * 100) + "%";
-            }, 100);
+            container.style.opacity = "1";
+        }
 
-            let i = 0;
-            const target = document.getElementById('verdictText');
-            function typeWriter() {
-                if (i < res.verdict.length) {
-                    target.innerHTML += res.verdict.charAt(i);
-                    i++;
-                    setTimeout(typeWriter, 25);
-                }
+        window.onload = function() {
+            const pending = localStorage.getItem('pendingClaim');
+            if (pending) {
+                document.getElementById('inputText').value = pending;
+                localStorage.removeItem('pendingClaim');
+                startAnalysis();
             }
-            typeWriter();
-
-        } else {
-            resultDiv.style.opacity = "1";
-            resultDiv.innerHTML = `<p style="color: #ff6b6b;">${data.error || 'The AI is taking a nap. Try again in a moment!'}</p>`;
         }
-    } catch (err) {
-        resultDiv.style.opacity = "1";
-        resultDiv.innerHTML = `<p style="color: #ff6b6b;">Connection error: ${err.message}</p>`;
-    } finally {
-        spinner.style.display = "none";
-        btn.disabled = false;
-        btn.textContent = "Analyze Statement";
-    }
-}
-
-    // Handle Example redirects
-    window.onload = () => {
-        const pending = localStorage.getItem('pendingClaim');
-        if (pending) {
-            document.getElementById('inputText').value = pending;
-            localStorage.removeItem('pendingClaim');
-            analyzeText();
-        }
-    }
-</script>
-
-<footer style="margin-top: 80px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%;">
-    <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
-    <p>
-        <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">GitHub</a> • 
-        <a href="/docs" style="color: #9b59b6; text-decoration: none;">API Access</a>
-    </p>
-    <p>© 2025 Grok System Development</p>
-</footer>
+    </script>
 </body>
 </html>
