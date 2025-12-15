@@ -122,106 +122,104 @@
         });
     }
 
-    async function analyzeText() {
-        const text = document.getElementById('inputText').value.trim();
-        const resultDiv = document.getElementById('result');
-        const spinner = document.getElementById('spinner');
-        const btn = document.getElementById('analyzeBtn');
+async function analyzeText() {
+    const text = document.getElementById('inputText').value.trim();
+    const resultDiv = document.getElementById('result');
+    const spinner = document.getElementById('spinner');
+    const btn = document.getElementById('analyzeBtn');
 
-        if (!text) {
-            resultDiv.style.opacity = "1";
-            resultDiv.innerHTML = "<p style='color: #ff6b6b; text-align:center;'>Please enter some text to analyze.</p>";
-            return;
-        }
-
-        resultDiv.style.opacity = "0";
-        spinner.style.display = "block";
-        btn.disabled = true;
-        btn.textContent = "Processing...";
-
-        try {
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
-            });
-
-            const data = await response.json();
-            const res = data.result;
-
-            if (response.ok) {
-                const biasColor = res.bias_score > 0.6 ? '#f44336' : res.bias_score > 0.3 ? '#ffeb3b' : '#4caf50';
-                
-                resultDiv.innerHTML = `
-                    <div style="background: #2c2c3e; padding: 25px; border-radius: 15px; border: 1px solid #444;">
-                        <h3 style="margin: 0 0 20px 0; color: #9b59b6; border-bottom: 1px solid #444; padding-bottom: 10px;">Analysis Report</h3>
-                        
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
-                                <span>Bias Intensity</span>
-                                <span style="color: ${biasColor}">${(res.bias_score * 100).toFixed(0)}%</span>
-                            </div>
-                            <div class="meter-container">
-                                <div id="biasMeter" class="meter-fill" style="background: ${biasColor};"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
-                                <span>AI Confidence</span>
-                                <span><span id="confValue">${(res.confidence * 100).toFixed(0)}</span>%</span>
-                            </div>
-                            <div class="meter-container">
-                                <div id="confMeter" class="meter-fill" style="background: #9b59b6;"></div>
-                            </div>
-                        </div>
-
-                        <div style="background: #1e1e2f; padding: 15px; border-radius: 10px; position: relative;">
-                            <strong style="color: #888; font-size: 0.8em; text-transform: uppercase;">Verdict</strong>
-                            <p id="verdictText" style="margin: 10px 0 0 0; line-height: 1.5; min-height: 1.5em;"></p>
-                            ${res.bias_score > 0.7 ? '<span class="badge" style="background: #ff4b2b22; color: #ff4b2b; border: 1px solid #ff4b2b;">Subjective Language Detected</span>' : ''}
-                        </div>
-
-                        <button onclick="copyReport()" style="background: #333; font-size: 0.8em; margin-top: 20px; padding: 8px 15px; border-radius: 20px; color: #ccc; border: 1px solid #444;">
-                            📋 Copy Report
-                        </button>
-                    </div>
-                `;
-                
-                resultDiv.style.opacity = "1";
-                
-                // 1. TRIGGER PROGRESS BARS
-                setTimeout(() => {
-                    document.getElementById('biasMeter').style.width = (res.bias_score * 100) + "%";
-                    document.getElementById('confMeter').style.width = (res.confidence * 100) + "%";
-                }, 100);
-
-                // 2. TRIGGER TYPEWRITER FOR VERDICT
-                let i = 0;
-                const speed = 25; 
-                const target = document.getElementById('verdictText');
-                function typeWriter() {
-                    if (i < res.verdict.length) {
-                        target.innerHTML += res.verdict.charAt(i);
-                        i++;
-                        setTimeout(typeWriter, speed);
-                    }
-                }
-                typeWriter();
-
-            } else {
-                resultDiv.style.opacity = "1";
-                resultDiv.innerHTML = `<p style="color: #ff6b6b;">Error: ${data.error || 'Check backend console'}</p>`;
-            }
-        } catch (err) {
-            resultDiv.style.opacity = "1";
-            resultDiv.innerHTML = `<p style="color: #ff6b6b;">Connection error: ${err.message}</p>`;
-        } finally {
-            spinner.style.display = "none";
-            btn.disabled = false;
-            btn.textContent = "Analyze Statement";
-        }
+    if (!text) {
+        resultDiv.style.opacity = "1";
+        resultDiv.innerHTML = "<p style='color: #ff6b6b; text-align:center;'>Please enter some text to analyze.</p>";
+        return;
     }
+
+    resultDiv.style.opacity = "0";
+    spinner.style.display = "block";
+    btn.disabled = true;
+    btn.textContent = "Connecting to AI...";
+
+    // Helper function to handle the fetch
+    const fetchAnalysis = async () => {
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        return response;
+    };
+
+    try {
+        let response = await fetchAnalysis();
+        let data = await response.json();
+
+        // If the model is loading (503), wait 10 seconds and try one more time automatically
+        if (response.status === 503) {
+            btn.textContent = "AI Warming Up (10s)...";
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            response = await fetchAnalysis();
+            data = await response.json();
+        }
+
+        if (response.ok) {
+            const res = data.result;
+            const biasColor = res.bias_score > 0.6 ? '#f44336' : res.bias_score > 0.3 ? '#ffeb3b' : '#4caf50';
+            
+            resultDiv.innerHTML = `
+                <div style="background: #2c2c3e; padding: 25px; border-radius: 15px; border: 1px solid #444;">
+                    <h3 style="margin: 0 0 20px 0; color: #9b59b6; border-bottom: 1px solid #444; padding-bottom: 10px;">Analysis Report</h3>
+                    <div style="margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
+                            <span>Bias Intensity</span>
+                            <span style="color: ${biasColor}">${(res.bias_score * 100).toFixed(0)}%</span>
+                        </div>
+                        <div class="meter-container"><div id="biasMeter" class="meter-fill" style="background: ${biasColor};"></div></div>
+                    </div>
+                    <div style="margin-bottom: 25px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
+                            <span>AI Confidence</span>
+                            <span><span id="confValue">${(res.confidence * 100).toFixed(0)}</span>%</span>
+                        </div>
+                        <div class="meter-container"><div id="confMeter" class="meter-fill" style="background: #9b59b6;"></div></div>
+                    </div>
+                    <div style="background: #1e1e2f; padding: 15px; border-radius: 10px;">
+                        <strong style="color: #888; font-size: 0.8em; text-transform: uppercase;">Verdict</strong>
+                        <p id="verdictText" style="margin: 10px 0 0 0; line-height: 1.5; min-height: 1.5em;"></p>
+                    </div>
+                    <button onclick="copyReport()" style="background: #333; font-size: 0.8em; margin-top: 20px; padding: 8px 15px; border-radius: 20px; color: #ccc; border: 1px solid #444;">📋 Copy Report</button>
+                </div>
+            `;
+            
+            resultDiv.style.opacity = "1";
+            setTimeout(() => {
+                document.getElementById('biasMeter').style.width = (res.bias_score * 100) + "%";
+                document.getElementById('confMeter').style.width = (res.confidence * 100) + "%";
+            }, 100);
+
+            let i = 0;
+            const target = document.getElementById('verdictText');
+            function typeWriter() {
+                if (i < res.verdict.length) {
+                    target.innerHTML += res.verdict.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 25);
+                }
+            }
+            typeWriter();
+
+        } else {
+            resultDiv.style.opacity = "1";
+            resultDiv.innerHTML = `<p style="color: #ff6b6b;">${data.error || 'The AI is taking a nap. Try again in a moment!'}</p>`;
+        }
+    } catch (err) {
+        resultDiv.style.opacity = "1";
+        resultDiv.innerHTML = `<p style="color: #ff6b6b;">Connection error: ${err.message}</p>`;
+    } finally {
+        spinner.style.display = "none";
+        btn.disabled = false;
+        btn.textContent = "Analyze Statement";
+    }
+}
 
     // Handle Example redirects
     window.onload = () => {
