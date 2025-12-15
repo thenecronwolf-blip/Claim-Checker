@@ -87,81 +87,57 @@
     </footer>
 
     <script>
-        async function startAnalysis() {
-            const text = document.getElementById('inputText').value.trim();
-            const resultDiv = document.getElementById('result');
-            const spinner = document.getElementById('spinner');
-            const btn = document.getElementById('analyzeBtn');
+       async function startAnalysis() {
+    const text = document.getElementById('inputText').value.trim();
+    const resultDiv = document.getElementById('result');
+    const spinner = document.getElementById('spinner');
+    const btn = document.getElementById('analyzeBtn');
 
-            if (!text) {
-                alert("Please enter some text first!");
-                return;
-            }
+    if (!text) { alert("Please enter text!"); return; }
 
-            resultDiv.style.opacity = "0";
-            spinner.style.display = "block";
-            btn.disabled = true;
-            btn.textContent = "Analyzing...";
+    resultDiv.style.opacity = "0";
+    spinner.style.display = "block";
+    btn.disabled = true;
+    btn.textContent = "Analyzing...";
 
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text })
-                });
+    try {
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
 
-                const data = await response.json();
+        // 1. Get the raw text first
+        const rawText = await response.text();
 
-                if (!response.ok) {
-                    // Check for "Model loading" specific error
-                    if (response.status === 503 && data.error === "Model loading") {
-                         throw new Error(`AI is warming up (approx ${Math.ceil(data.estimated_time)}s). Please try again in a moment.`);
-                    }
-                    throw new Error(data.error || `Server Error: ${response.status}`);
-                }
-
-                renderSuccess(data.result, resultDiv);
-
-            } catch (err) {
-                resultDiv.innerHTML = `<p style="color: #ff6b6b; text-align: center; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 8px;">${err.message}</p>`;
-                resultDiv.style.opacity = "1";
-            } finally {
-                spinner.style.display = "none";
-                btn.disabled = false;
-                btn.textContent = "Analyze";
-            }
+        // 2. Try to parse it as JSON
+        let data;
+        try {
+            data = JSON.parse(rawText);
+        } catch (e) {
+            // If it fails, it means we got HTML (an error page)
+            console.error("Server returned HTML instead of JSON:", rawText);
+            throw new Error(`Server Error (Not JSON). Check Console/Logs. \n\nPreview: ${rawText.substring(0, 100)}...`);
         }
 
-        function renderSuccess(res, container) {
-            const biasColor = res.bias_score > 0.5 ? '#f44336' : '#4caf50';
-            
-            container.innerHTML = `
-                <div style="background: #2c2c3e; padding: 25px; border-radius: 12px; border: 1px solid #444;">
-                    <h3 style="margin-top:0; color:#9b59b6;">Analysis Complete</h3>
-                    
-                    <p><strong>Bias Score:</strong> ${(res.bias_score * 100).toFixed(0)}%</p>
-                    <div class="meter-container"><div class="meter-fill" style="width:${res.bias_score * 100}%; background:${biasColor}"></div></div>
-                    
-                    <p><strong>Confidence:</strong> ${(res.confidence * 100).toFixed(0)}%</p>
-                    <div class="meter-container"><div class="meter-fill" style="width:${res.confidence * 100}%; background:#9b59b6"></div></div>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background: #1e1e2f; border-radius: 8px;">
-                        <strong>Verdict:</strong>
-                        <p id="typewriterText" style="margin: 5px 0 0 0;">${res.verdict}</p>
-                    </div>
-                </div>
-            `;
-            container.style.opacity = "1";
+        if (!response.ok) {
+            if (response.status === 503 && data.error === "Model loading") {
+                 throw new Error(`AI is warming up (wait ${Math.ceil(data.estimated_time)}s). Try again shortly.`);
+            }
+            throw new Error(data.error || `Server Error: ${response.status}`);
         }
 
-        window.onload = function() {
-            const pending = localStorage.getItem('pendingClaim');
-            if (pending) {
-                document.getElementById('inputText').value = pending;
-                localStorage.removeItem('pendingClaim');
-                startAnalysis();
-            }
-        }
+        renderSuccess(data.result, resultDiv);
+
+    } catch (err) {
+        resultDiv.innerHTML = `<p style="color: #ff6b6b; padding: 10px; background: rgba(255,0,0,0.1); border-radius: 8px;">${err.message}</p>`;
+        resultDiv.style.opacity = "1";
+    } finally {
+        spinner.style.display = "none";
+        btn.disabled = false;
+        btn.textContent = "Analyze";
+    }
+}
     </script>
 </body>
 </html>
