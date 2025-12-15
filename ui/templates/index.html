@@ -85,88 +85,77 @@
     <div id="result"></div>
 
     <script>
-        async function analyzeText() {
-            const text = document.getElementById('inputText').value.trim();
-            if (!text) {
-                document.getElementById('result').innerHTML = "Please enter some text to analyze.";
-                return;
-            }
+    async function analyzeText() {
+        const text = document.getElementById('inputText').value.trim();
+        const resultDiv = document.getElementById('result');
+        const spinner = document.getElementById('spinner');
+        const btn = document.getElementById('analyzeBtn');
 
-            const resultDiv = document.getElementById('result');
-            const spinner = document.getElementById('spinner');
-            const btn = document.getElementById('analyzeBtn');
-
-            // Show loading state
-            if (response.ok) {
-    const res = data.result;
-
-    // Create visual elements
-    let html = `
-        <h3 style="margin-bottom: 10px; color: #bb86fc;">Analysis Result</h3>
-        
-        <div style="margin: 20px 0;">
-            <strong>Bias Score: ${res.bias_score.toFixed(2)}</strong>
-            <div style="width: 100%; background: #333; border-radius: 8px; overflow: hidden; margin-top: 8px;">
-                <div style="
-                    width: ${res.bias_score * 100}%;
-                    height: 30px;
-                    background: linear-gradient(to right, #4CAF50, #FFEB3B, #F44336);
-                    transition: width 1s ease-in-out;
-                    border-radius: 8px;
-                "></div>
-            </div>
-            <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">
-                Low (green) ← → High (red)
-            </p>
-        </div>
-
-        <div style="margin: 20px 0;">
-            <strong>Confidence: ${res.confidence.toFixed(2)}</strong>
-            <div style="width: 100%; background: #333; border-radius: 8px; overflow: hidden; margin-top: 8px;">
-                <div style="
-                    width: ${res.confidence * 100}%;
-                    height: 20px;
-                    background: #9b59b6;
-                "></div>
-            </div>
-        </div>
-
-        <div style="margin: 20px 0; padding: 15px; background: #2c2c3e; border-radius: 8px;">
-            <strong>Verdict:</strong><br>
-            ${res.verdict}
-        </div>
-    `;
-
-    resultDiv.innerHTML = html;
-}
-            spinner.style.display = "block";
-            btn.disabled = true;
-            btn.textContent = "Analyzing...";
-
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    resultDiv.innerHTML = `<pre>${JSON.stringify(data.result, null, 2)}</pre>`;
-                } else {
-                    resultDiv.innerHTML = `Error: ${data.error || 'Something went wrong'}`;
-                }
-            } catch (err) {
-                resultDiv.innerHTML = `Connection error: ${err.message}`;
-            } finally {
-                // Hide loading state
-                spinner.style.display = "none";
-                btn.disabled = false;
-                btn.textContent = "Analyze";
-            }
+        // Clear previous result and show loading state
+        resultDiv.innerHTML = "";
+        if (text === "") {
+            resultDiv.innerHTML = "<p style='color: #ff6b6b;'>Please enter some text to analyze.</p>";
+            return;
         }
-    </script>
+
+        spinner.style.display = "block";
+        btn.disabled = true;
+        btn.textContent = "Analyzing...";
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                const res = data.result;
+
+                let html = `
+                    <h3 style="margin-bottom: 15px; color: #bb86fc;">Analysis Result</h3>
+                    
+                    <div style="margin: 20px 0;">
+                        <strong>Bias Score: ${res.bias_score.toFixed(2)}</strong>
+                        <div style="width: 100%; height: 30px; background: #333; border-radius: 8px; overflow: hidden; margin-top: 8px;">
+                            <div style="
+                                width: ${res.bias_score * 100}%;
+                                height: 100%;
+                                background: linear-gradient(to right, #4CAF50, #FFEB3B, #F44336);
+                                transition: width 1.2s ease-in-out;
+                            "></div>
+                        </div>
+                        <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">Low (green) ← → High (red)</p>
+                    </div>
+
+                    <div style="margin: 20px 0;">
+                        <strong>Confidence: ${res.confidence.toFixed(2)}</strong>
+                        <div style="width: 100%; height: 20px; background: #333; border-radius: 8px; overflow: hidden; margin-top: 8px;">
+                            <div style="width: ${res.confidence * 100}%; height: 100%; background: #9b59b6; transition: width 1s ease;"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin: 20px 0; padding: 15px; background: #2c2c3e; border-radius: 8px; text-align: left;">
+                        <strong>Verdict:</strong><br>${res.verdict}
+                    </div>
+                `;
+
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = `<p style="color: #ff6b6b;">Error: ${data.error || 'Something went wrong'}</p>`;
+            }
+        } catch (err) {
+            resultDiv.innerHTML = `<p style="color: #ff6b6b;">Connection error: ${err.message}</p>`;
+        } finally {
+            // Hide loading state
+            spinner.style.display = "none";
+            btn.disabled = false;
+            btn.textContent = "Analyze";
+        }
+    }
+</script>
     <footer style="margin-top: 80px; padding: 20px; text-align: center; color: #888; font-size: 0.9em; border-top: 1px solid #444;">
     <p>Claim Checker – Built with ❤️ by Joseph Herrmann</p>
     <p><a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">View on GitHub</a> • 
