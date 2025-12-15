@@ -34,42 +34,22 @@ def health():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    try:
-        data = request.get_json(force=True)
-        text = data.get('text', '').strip()
+    # ... setup code ...
+    response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload)
+    output = response.json()
 
-        if not text:
-            return jsonify({"error": "Please enter some text!"}), 400
+    # If HF says it's loading, return that info to frontend IMMEDIATELY
+    if isinstance(output, dict) and "error" in output and "loading" in output["error"].lower():
+        estimated_time = output.get("estimated_time", 20.0)
+        return jsonify({"error": "Model loading", "estimated_time": estimated_time}), 503
 
-        # Hugging Face API Logic
-        payload = {
-            "inputs": text,
-            "parameters": {"candidate_labels": ["factual", "biased", "opinion", "misinformation"]}
-        }
-        
-        response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=10)
-        output = response.json()
+    if "labels" in output:
+        # ... process your result ...
+        return jsonify({"result": result})
+    
+    return jsonify({"error": "Unknown error"}), 500
 
-        if isinstance(output, dict) and "labels" in output:
-            top_label = output['labels'][0]
-            confidence = round(output['scores'][0], 2)
-            
-            verdict_map = {
-                "factual": "Likely Factual – The statement appears objective.",
-                "biased": "Bias Detected – This text contains subjective language.",
-                "opinion": "Opinion – This appears to be a personal view.",
-                "misinformation": "Caution – This matches patterns of misinformation."
-            }
-
-            # WRAP IN "result" KEY FOR UI COMPATIBILITY
-            return jsonify({
-                "result": {
-                    "bias_score": confidence if top_label != "factual" else 1 - confidence,
-                    "confidence": confidence,
-                    "verdict": verdict_map.get(top_label, "Analysis complete.")
-                }
-            })
-        else:
+else:
             # Handle model loading (Model is 500mb+, takes time to load on first hit)
             return jsonify({"error": "AI model is initializing. Please try again in 20 seconds."}), 503
 
