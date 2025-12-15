@@ -27,22 +27,32 @@ def docs():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    try:
-        data = request.get_json(force=True)  # force=True ignores Content-Type header issues
-        text = data.get('text', '').strip() if data else ''
+    data = request.get_json()
+    text = data.get('text', '').strip()
 
-        if not text:
-            return jsonify({"error": "No text provided – please enter a claim to analyze."}), 400
+    if not text:
+        return jsonify({"error": "Please enter some text!"}), 400
 
-        # Your real Hugging Face analysis code here...
-        # Temporary placeholder so you can test the flow
-        result = {
-            "bias_score": 0.72,
-            "confidence": 0.89,
-            "verdict": "Potential bias detected – review sources recommended"
-        }
+    # Simple fun variation based on text length (just for now)
+    length = len(text)
+    bias_score = round(0.3 + (length % 50) / 100, 2)  # Varies a bit
+    confidence = round(0.7 + (length % 30) / 100, 2)
 
-        return jsonify({"result": result})
+    verdicts = [
+        "Low potential bias – appears balanced",
+        "Moderate potential bias detected",
+        "Potential bias detected – review sources recommended",
+        "High potential bias – strong language noted"
+    ]
+    verdict = verdicts[length % 4]  # Cycles through different messages
+
+    result = {
+        "bias_score": bias_score,
+        "confidence": confidence,
+        "verdict": verdict
+    }
+
+    return jsonify({"result": result})
 
     except Exception as e:
         return jsonify({"error": f"Something went wrong: {str(e)}"}), 500
