@@ -1,5 +1,6 @@
 fastapi
 Flask
+google-generativeai
 gunicorn
 uvicorn
 requests
