@@ -24,3 +24,18 @@ def about():
 @app.route('/docs')
 def docs():
     return render_template('docs.html')
+    
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    data = request.get_json()
+    text = data.get('text', '').strip()
+        
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+        placeholder_result = {
+        "bias_score": 0.68,
+        "confidence": 0.85,
+        "verdict": "Moderate potential bias detected – further review recommended"
+    }
+    
+    return jsonify({"result": placeholder_result})
