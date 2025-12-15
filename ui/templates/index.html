@@ -5,140 +5,228 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claim Checker</title>
     <style>
+        /* --- 1. THE DEEP SPACE GRADIENT ANIMATION --- */
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #1e1e2f;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 50px;
             margin: 0;
-            min-height: 100vh; /* Ensures footer stays at bottom */
+            min-height: 100vh;
+            /* The Gradient Magic */
+            background: linear-gradient(-45deg, #1e1e2f, #2c2c3e, #1a1a2e, #0f0f1a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
         }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- UI ELEMENTS --- */
+        h1 { 
+            font-size: 3em; 
+            margin-bottom: 10px; 
+            background: linear-gradient(to right, #9b59b6, #ff4757);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            text-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+        }
+
         textarea {
             width: 100%;
             max-width: 600px;
             height: 120px;
             padding: 15px;
             border-radius: 12px;
-            border: 2px solid #333;
-            background: #2c2c3e;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3); /* Glass effect */
+            backdrop-filter: blur(5px);
             color: white;
             font-size: 16px;
             margin-bottom: 20px;
             outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        textarea:focus { border-color: #9b59b6; }
-        
+        textarea:focus { border-color: #9b59b6; box-shadow: 0 0 15px rgba(155, 89, 182, 0.3); }
+
         button {
-            background: #9b59b6;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
             color: white;
-            padding: 12px 30px;
+            padding: 14px 40px;
             border: none;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        button:hover { transform: translateY(-2px); background: #8e44ad; }
-        button:disabled { background: #666; cursor: wait; transform: none; }
-        
-        .meter-container {
-            width: 100%; background: #333; height: 10px; border-radius: 5px; margin-top: 5px;
+        button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(155, 89, 182, 0.5); }
+        button:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* --- RESULTS CARD --- */
+        #result { 
+            opacity: 0; 
+            transition: opacity 0.5s; 
+            margin-top: 30px; 
+            max-width: 600px; 
+            width: 100%; 
         }
-        .meter-fill {
-            height: 100%; width: 0%; transition: width 1s ease; border-radius: 5px;
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        #result { opacity: 0; transition: opacity 0.5s; margin-top: 20px; max-width: 600px; width: 100%; }
-        
-        /* Spinner */
-        .spinner {
-            border: 4px solid #333; border-top: 4px solid #9b59b6; border-radius: 50%;
-            width: 30px; height: 30px; animation: spin 1s linear infinite;
-            margin: 20px auto; display: none;
+
+        /* --- METERS --- */
+        .meter-container { width: 100%; background: rgba(255,255,255,0.1); height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
+        .meter-fill { height: 100%; width: 0%; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); border-radius: 6px; }
+
+        /* --- LOADING STATUS --- */
+        #statusText {
+            margin-top: 15px;
+            font-family: monospace;
+            color: #9b59b6;
+            height: 20px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- FOOTER --- */
+        nav a { color: rgba(255,255,255,0.7); margin: 0 15px; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        nav a:hover { color: #9b59b6; }
     </style>
 </head>
 <body>
 
-    <nav style="margin-bottom: 40px; text-align: center;">
-    <a href="/" style="color: #9b59b6; margin: 0 15px; text-decoration: none; font-weight: bold;">Home</a>
-    <a href="/examples" style="color: #9b59b6; margin: 0 15px; text-decoration: none;">Examples</a>
-    <a href="/about" style="color: #9b59b6; margin: 0 15px; text-decoration: none;">About</a>
-    <a href="/donate" style="color: #ff4757; margin: 0 15px; text-decoration: none; font-weight: bold;">♥ Donate</a>
-</nav>
+    <nav style="margin-bottom: 40px;">
+        <a href="/">Home</a>
+        <a href="/examples">Examples</a>
+        <a href="/about">About</a>
+        <a href="/donate" style="color: #ff4757;">♥ Donate</a>
+    </nav>
 
-    <h1 style="color:#9b59b6;">Claim Checker</h1>
-    <textarea id="inputText" placeholder="Paste a claim here..."></textarea>
-    <button id="analyzeBtn" onclick="startAnalysis()">Analyze</button>
+    <h1>Claim Checker</h1>
+    <p style="color: rgba(255,255,255,0.6); margin-top: -5px; margin-bottom: 30px;">AI-Powered Objectivity Analysis System</p>
     
-    <div class="spinner" id="spinner"></div>
+    <textarea id="inputText" placeholder="Enter a statement to scan for bias patterns..."></textarea>
+    <button id="analyzeBtn" onclick="startAnalysis()">Analyze System</button>
+    
+    <div id="statusText"></div>
     <div id="result"></div>
 
-    <div style="flex-grow: 1;"></div> <footer style="margin-top: 60px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%; max-width: 800px;">
-        <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
-        <p>
-            <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">GitHub</a> • 
-            <a href="/docs" style="color: #9b59b6; text-decoration: none;">API Access</a>
-        </p>
-        <p>© 2025 Grok System Development</p>
-    </footer>
-
     <script>
-       async function startAnalysis() {
-    const text = document.getElementById('inputText').value.trim();
-    const resultDiv = document.getElementById('result');
-    const spinner = document.getElementById('spinner');
-    const btn = document.getElementById('analyzeBtn');
+        async function startAnalysis() {
+            const text = document.getElementById('inputText').value.trim();
+            const resultDiv = document.getElementById('result');
+            const status = document.getElementById('statusText');
+            const btn = document.getElementById('analyzeBtn');
 
-    if (!text) { alert("Please enter text!"); return; }
+            if (!text) { alert("Please input data for analysis."); return; }
 
-    resultDiv.style.opacity = "0";
-    spinner.style.display = "block";
-    btn.disabled = true;
-    btn.textContent = "Analyzing...";
-
-    try {
-        const response = await fetch('/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: text })
-        });
-
-        // 1. Get the raw text first
-        const rawText = await response.text();
-
-        // 2. Try to parse it as JSON
-        let data;
-        try {
-            data = JSON.parse(rawText);
-        } catch (e) {
-            // If it fails, it means we got HTML (an error page)
-            console.error("Server returned HTML instead of JSON:", rawText);
-            throw new Error(`Server Error (Not JSON). Check Console/Logs. \n\nPreview: ${rawText.substring(0, 100)}...`);
-        }
-
-        if (!response.ok) {
-            if (response.status === 503 && data.error === "Model loading") {
-                 throw new Error(`AI is warming up (wait ${Math.ceil(data.estimated_time)}s). Try again shortly.`);
+            // UI Reset
+            resultDiv.style.opacity = "0";
+            btn.disabled = true;
+            btn.textContent = "Processing...";
+            
+            // --- BEHAVIORAL SIMULATION (The "Thinking" Effect) ---
+            const steps = ["Scanning syntax...", "Detecting emotional markers...", "Calculating subjectivity...", "Finalizing verdict..."];
+            for (let i = 0; i < steps.length; i++) {
+                status.innerText = steps[i];
+                await new Promise(r => setTimeout(r, 400)); // 0.4s delay per step
             }
-            throw new Error(data.error || `Server Error: ${response.status}`);
+            status.innerText = "";
+
+            try {
+                // Fetch from our local Logic Engine
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                const data = await response.json();
+                const res = data.result;
+
+                // Render Results
+                const biasColor = res.bias_score > 0.6 ? '#ff4757' : res.bias_score > 0.3 ? '#ffa502' : '#2ed573';
+                
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <h3 style="margin-top:0; color:white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:15px;">Analysis Report</h3>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>Bias Intensity</span>
+                                <span style="color:${biasColor}; font-weight:bold;">${(res.bias_score * 100).toFixed(0)}%</span>
+                            </div>
+                            <div class="meter-container"><div id="biasMeter" class="meter-fill" style="background:${biasColor}"></div></div>
+                        </div>
+
+                        <div style="margin-bottom: 25px;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>System Confidence</span>
+                                <span>${(res.confidence * 100).toFixed(0)}%</span>
+                            </div>
+                            <div class="meter-container"><div id="confMeter" class="meter-fill" style="background:linear-gradient(90deg, #9b59b6, #8e44ad)"></div></div>
+                        </div>
+                        
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                            <strong style="color:#aaa; text-transform:uppercase; font-size:0.8em;">Verdict</strong>
+                            <p id="typewriterText" style="margin: 5px 0 0 0; line-height: 1.6;"></p>
+                        </div>
+                    </div>
+                `;
+                resultDiv.style.opacity = "1";
+
+                // --- ANIMATIONS ---
+                // 1. Fill Meters
+                setTimeout(() => {
+                    document.getElementById('biasMeter').style.width = (res.bias_score * 100) + "%";
+                    document.getElementById('confMeter').style.width = (res.confidence * 100) + "%";
+                }, 100);
+
+                // 2. Typewriter Effect
+                let charIndex = 0;
+                const typeTarget = document.getElementById('typewriterText');
+                const typeContent = res.verdict;
+                typeTarget.innerHTML = ""; // Clear
+                
+                function type() {
+                    if (charIndex < typeContent.length) {
+                        typeTarget.innerHTML += typeContent.charAt(charIndex);
+                        charIndex++;
+                        setTimeout(type, 20); // Typing speed
+                    }
+                }
+                type();
+
+            } catch (err) {
+                status.innerText = "System Error.";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Analyze System";
+            }
         }
-
-        renderSuccess(data.result, resultDiv);
-
-    } catch (err) {
-        resultDiv.innerHTML = `<p style="color: #ff6b6b; padding: 10px; background: rgba(255,0,0,0.1); border-radius: 8px;">${err.message}</p>`;
-        resultDiv.style.opacity = "1";
-    } finally {
-        spinner.style.display = "none";
-        btn.disabled = false;
-        btn.textContent = "Analyze";
-    }
-}
+        
+        // Auto-load from examples
+        window.onload = function() {
+            const pending = localStorage.getItem('pendingClaim');
+            if (pending) {
+                document.getElementById('inputText').value = pending;
+                localStorage.removeItem('pendingClaim');
+                startAnalysis();
+            }
+        }
     </script>
 </body>
 </html>
