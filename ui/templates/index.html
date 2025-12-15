@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claim Checker</title>
     <style>
-        /* --- 1. THE DEEP SPACE GRADIENT ANIMATION --- */
+        /* --- 1. DEEP SPACE ANIMATION --- */
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #e0e0e0;
@@ -26,7 +26,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* --- UI ELEMENTS --- */
         h1 { 
             font-size: 3em; 
             margin-bottom: 10px; 
@@ -34,9 +33,9 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
-            text-shadow: 0px 4px 10px rgba(0,0,0,0.3);
         }
 
+        /* --- INPUTS & BUTTONS --- */
         textarea {
             width: 100%;
             max-width: 600px;
@@ -44,14 +43,13 @@
             padding: 15px;
             border-radius: 12px;
             border: 2px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.3); /* Glass effect */
+            background: rgba(0,0,0,0.3);
             backdrop-filter: blur(5px);
             color: white;
             font-size: 16px;
             margin-bottom: 20px;
             outline: none;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         textarea:focus { border-color: #9b59b6; box-shadow: 0 0 15px rgba(155, 89, 182, 0.3); }
 
@@ -65,42 +63,63 @@
             font-size: 18px;
             font-weight: bold;
             transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(155, 89, 182, 0.5); }
         button:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* --- RESULTS CARD --- */
-        #result { 
-            opacity: 0; 
-            transition: opacity 0.5s; 
-            margin-top: 30px; 
-            max-width: 600px; 
-            width: 100%; 
-        }
-
+        /* --- RESULT CARDS --- */
+        #result { opacity: 0; transition: opacity 0.5s; margin-top: 30px; max-width: 600px; width: 100%; }
+        
         .result-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        /* --- METERS --- */
         .meter-container { width: 100%; background: rgba(255,255,255,0.1); height: 12px; border-radius: 6px; margin-top: 8px; overflow: hidden; }
         .meter-fill { height: 100%; width: 0%; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); border-radius: 6px; }
 
-        /* --- LOADING STATUS --- */
-        #statusText {
-            margin-top: 15px;
-            font-family: monospace;
-            color: #9b59b6;
-            height: 20px;
+        /* --- NEW: SOURCE BADGE --- */
+        .source-badge {
+            float: right;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* --- FOOTER --- */
+        /* --- NEW: HISTORY LOG --- */
+        #historySection {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 60px;
+            display: none;
+        }
+        .history-item {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #555;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .history-item:hover { background: rgba(0,0,0,0.3); }
+        .history-item.factual { border-left-color: #2ed573; }
+        .history-item.biased { border-left-color: #ff4757; }
+        .history-item.opinion { border-left-color: #ffa502; }
+
+        /* --- NAVIGATION --- */
         nav { margin-bottom: 40px; }
         nav a { color: rgba(255,255,255,0.7); margin: 0 15px; text-decoration: none; font-weight: 500; transition: color 0.2s; }
         nav a:hover { color: #9b59b6; }
@@ -121,8 +140,26 @@
     <textarea id="inputText" placeholder="Enter a statement to scan for bias patterns..."></textarea>
     <button id="analyzeBtn" onclick="startAnalysis()">Analyze System</button>
     
-    <div id="statusText"></div>
+    <div id="statusText" style="margin-top:15px; font-family:monospace; color:#9b59b6; height:20px;"></div>
+    
     <div id="result"></div>
+
+    <div id="historySection">
+        <h4 style="color: #666; text-transform: uppercase; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 15px;">Session History</h4>
+        <div id="historyList"></div>
+    </div>
+
+    <div style="flex-grow: 1;"></div>
+
+    <footer style="margin-top: 80px; padding: 30px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85em; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 800px;">
+        <p style="margin-bottom: 10px;">Claim Checker • Built with 💙 by Joseph Herrmann</p>
+        <p style="margin-bottom: 10px;">
+            <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none; font-weight: bold; margin: 0 10px;">GitHub</a> • 
+            <a href="/docs" style="color: #9b59b6; text-decoration: none; font-weight: bold; margin: 0 10px;">API Docs</a> • 
+            <a href="/donate" style="color: #ff4757; text-decoration: none; font-weight: bold; margin: 0 10px;">Donate</a>
+        </p>
+        <p style="opacity: 0.6;">© 2025 Grok System Development</p>
+    </footer>
 
     <script>
         async function startAnalysis() {
@@ -131,48 +168,45 @@
             const status = document.getElementById('statusText');
             const btn = document.getElementById('analyzeBtn');
 
-            if (!text) { alert("Please input data for analysis."); return; }
+            if (!text) { alert("Please input data."); return; }
 
             // UI Reset
             resultDiv.style.opacity = "0";
             btn.disabled = true;
             btn.textContent = "Processing...";
             
-            // --- BEHAVIORAL SIMULATION (The "Thinking" Effect) ---
-            const steps = ["Scanning syntax...", "Detecting emotional markers...", "Calculating subjectivity...", "Finalizing verdict..."];
+            // Animation Steps (The "Thinking" Effect)
+            const steps = ["Parsing syntax...", "Identifying source type...", "Measuring subjectivity...", "Generating report..."];
             for (let i = 0; i < steps.length; i++) {
                 status.innerText = steps[i];
-                await new Promise(r => setTimeout(r, 400)); // 0.4s delay per step
+                await new Promise(r => setTimeout(r, 350));
             }
             status.innerText = "";
 
             try {
-                // Fetch from our local Logic Engine
                 const response = await fetch('/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: text })
                 });
                 
-                // --- SAFE PARSING ---
                 const rawText = await response.text();
                 let data;
-                try {
-                    data = JSON.parse(rawText);
-                } catch (e) {
-                    throw new Error("Server Error (HTML Response): " + rawText.substring(0,50));
-                }
+                try { data = JSON.parse(rawText); } 
+                catch (e) { throw new Error("Server Response Error"); }
 
                 if (!response.ok) throw new Error(data.error || "Unknown Error");
 
                 const res = data.result;
-
-                // Render Results (Inline Logic)
                 const biasColor = res.bias_score > 0.6 ? '#ff4757' : res.bias_score > 0.3 ? '#ffa502' : '#2ed573';
                 
+                // RENDER RESULT CARD
                 resultDiv.innerHTML = `
                     <div class="result-card">
-                        <h3 style="margin-top:0; color:white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:15px;">Analysis Report</h3>
+                        <div style="margin-bottom:20px; overflow:hidden;">
+                            <h3 style="margin:0; float:left; color:white;">Analysis Report</h3>
+                            <span class="source-badge">${res.source_type}</span>
+                        </div>
                         
                         <div style="margin-bottom: 20px;">
                             <div style="display:flex; justify-content:space-between;">
@@ -184,7 +218,7 @@
 
                         <div style="margin-bottom: 25px;">
                             <div style="display:flex; justify-content:space-between;">
-                                <span>System Confidence</span>
+                                <span>Confidence</span>
                                 <span>${(res.confidence * 100).toFixed(0)}%</span>
                             </div>
                             <div class="meter-container"><div id="confMeter" class="meter-fill" style="background:linear-gradient(90deg, #9b59b6, #8e44ad)"></div></div>
@@ -198,40 +232,52 @@
                 `;
                 resultDiv.style.opacity = "1";
 
-                // --- ANIMATIONS ---
+                // ANIMATIONS
                 setTimeout(() => {
                     document.getElementById('biasMeter').style.width = (res.bias_score * 100) + "%";
                     document.getElementById('confMeter').style.width = (res.confidence * 100) + "%";
                 }, 100);
 
+                // Typewriter Effect
                 let charIndex = 0;
                 const typeTarget = document.getElementById('typewriterText');
                 const typeContent = res.verdict;
                 typeTarget.innerHTML = ""; 
-                
                 function type() {
                     if (charIndex < typeContent.length) {
                         typeTarget.innerHTML += typeContent.charAt(charIndex);
                         charIndex++;
-                        setTimeout(type, 20); 
+                        setTimeout(type, 15);
                     }
                 }
                 type();
 
+                // Add to History
+                addToHistory(text, res.label, res.verdict);
+
             } catch (err) {
-                status.innerText = "System Error: " + err.message;
-                console.error(err);
+                status.innerText = "Error: " + err.message;
             } finally {
                 btn.disabled = false;
                 btn.textContent = "Analyze System";
             }
         }
-        
-        // --- FALLBACK FUNCTION ---
-        // I added this back in case you have mixed code elsewhere calling it
-        function renderSuccess(res, container) {
-            console.log("Legacy render called");
-            // Redirect to main analysis logic if this gets called by accident
+
+        function addToHistory(text, label, verdict) {
+            const list = document.getElementById('historyList');
+            const section = document.getElementById('historySection');
+            section.style.display = "block";
+            
+            const preview = text.length > 50 ? text.substring(0, 50) + "..." : text;
+            
+            const item = document.createElement('div');
+            item.className = `history-item ${label}`;
+            item.innerHTML = `
+                <span>${preview}</span>
+                <span style="font-size:0.75em; opacity:0.7; font-weight:bold; letter-spacing:1px;">${label.toUpperCase()}</span>
+            `;
+            
+            list.insertBefore(item, list.firstChild);
         }
 
         window.onload = function() {
@@ -243,16 +289,5 @@
             }
         }
     </script>
-        <div style="flex-grow: 1;"></div>
-
-    <footer style="margin-top: 80px; padding: 30px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85em; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 800px;">
-        <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
-        <p>
-            <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none; transition: color 0.2s;">GitHub</a> • 
-            <a href="/docs" style="color: #9b59b6; text-decoration: none; transition: color 0.2s;">API Access</a>
-        </p>
-        <p>© 2025 Grok System Development</p>
-    </footer>
-
 </body>
 </html>
