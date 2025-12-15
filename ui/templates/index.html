@@ -56,7 +56,6 @@
             transition: opacity 0.5s ease-in;
         }
 
-        /* Gauge Visuals */
         .meter-container {
             width: 100%;
             background: #333;
@@ -71,7 +70,6 @@
             transition: width 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Fallacy Badge */
         .badge {
             display: inline-block;
             padding: 4px 12px;
@@ -113,6 +111,17 @@
     <div id="result"></div>
 
     <script>
+    // Global function to copy report
+    function copyReport() {
+        const verdict = document.getElementById('verdictText').innerText;
+        const confidence = document.getElementById('confValue').innerText;
+        const text = `🔍 Claim Analysis Report\nVerdict: ${verdict}\nConfidence: ${confidence}%\nVerified via Claim-Checker.onrender.com`;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Report copied to clipboard!");
+        });
+    }
+
     async function analyzeText() {
         const text = document.getElementById('inputText').value.trim();
         const resultDiv = document.getElementById('result');
@@ -125,7 +134,6 @@
             return;
         }
 
-        // UI Reset
         resultDiv.style.opacity = "0";
         spinner.style.display = "block";
         btn.disabled = true;
@@ -138,10 +146,10 @@
                 body: JSON.stringify({ text })
             });
 
-            const res = await response.json();
+            const data = await response.json();
+            const res = data.result;
 
             if (response.ok) {
-                // Determine colors based on bias
                 const biasColor = res.bias_score > 0.6 ? '#f44336' : res.bias_score > 0.3 ? '#ffeb3b' : '#4caf50';
                 
                 resultDiv.innerHTML = `
@@ -161,32 +169,49 @@
                         <div style="margin-bottom: 25px;">
                             <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
                                 <span>AI Confidence</span>
-                                <span>${(res.confidence * 100).toFixed(0)}%</span>
+                                <span><span id="confValue">${(res.confidence * 100).toFixed(0)}</span>%</span>
                             </div>
                             <div class="meter-container">
                                 <div id="confMeter" class="meter-fill" style="background: #9b59b6;"></div>
                             </div>
                         </div>
 
-                        <div style="background: #1e1e2f; padding: 15px; border-radius: 10px;">
+                        <div style="background: #1e1e2f; padding: 15px; border-radius: 10px; position: relative;">
                             <strong style="color: #888; font-size: 0.8em; text-transform: uppercase;">Verdict</strong>
-                            <p style="margin: 10px 0 0 0; line-height: 1.5;">${res.verdict}</p>
+                            <p id="verdictText" style="margin: 10px 0 0 0; line-height: 1.5; min-height: 1.5em;"></p>
                             ${res.bias_score > 0.7 ? '<span class="badge" style="background: #ff4b2b22; color: #ff4b2b; border: 1px solid #ff4b2b;">Subjective Language Detected</span>' : ''}
                         </div>
+
+                        <button onclick="copyReport()" style="background: #333; font-size: 0.8em; margin-top: 20px; padding: 8px 15px; border-radius: 20px; color: #ccc; border: 1px solid #444;">
+                            📋 Copy Report
+                        </button>
                     </div>
                 `;
                 
                 resultDiv.style.opacity = "1";
                 
-                // Trigger animations after a tiny delay
+                // 1. TRIGGER PROGRESS BARS
                 setTimeout(() => {
                     document.getElementById('biasMeter').style.width = (res.bias_score * 100) + "%";
                     document.getElementById('confMeter').style.width = (res.confidence * 100) + "%";
                 }, 100);
 
+                // 2. TRIGGER TYPEWRITER FOR VERDICT
+                let i = 0;
+                const speed = 25; 
+                const target = document.getElementById('verdictText');
+                function typeWriter() {
+                    if (i < res.verdict.length) {
+                        target.innerHTML += res.verdict.charAt(i);
+                        i++;
+                        setTimeout(typeWriter, speed);
+                    }
+                }
+                typeWriter();
+
             } else {
                 resultDiv.style.opacity = "1";
-                resultDiv.innerHTML = `<p style="color: #ff6b6b;">Error: ${res.error || 'Check backend console'}</p>`;
+                resultDiv.innerHTML = `<p style="color: #ff6b6b;">Error: ${data.error || 'Check backend console'}</p>`;
             }
         } catch (err) {
             resultDiv.style.opacity = "1";
@@ -196,25 +221,17 @@
             btn.disabled = false;
             btn.textContent = "Analyze Statement";
         }
-    } window.onload = () => {
-    const pending = localStorage.getItem('pendingClaim');
-    if (pending) {
-        document.getElementById('inputText').value = pending;
-        localStorage.removeItem('pendingClaim');
-        analyzeText(); // Automatically start the analysis!
     }
-}
 
-// Add this inside your existing <script> tag
-window.onload = () => {
-    const pending = localStorage.getItem('pendingClaim');
-    if (pending) {
-        document.getElementById('inputText').value = pending;
-        localStorage.removeItem('pendingClaim'); // Clear it so it doesn't loop
-        analyzeText(); // Trigger the analysis automatically!
+    // Handle Example redirects
+    window.onload = () => {
+        const pending = localStorage.getItem('pendingClaim');
+        if (pending) {
+            document.getElementById('inputText').value = pending;
+            localStorage.removeItem('pendingClaim');
+            analyzeText();
+        }
     }
-}
-
 </script>
 
 <footer style="margin-top: 80px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%;">
@@ -227,4 +244,3 @@ window.onload = () => {
 </footer>
 </body>
 </html>
-
