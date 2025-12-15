@@ -4,20 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About - Claim Checker</title>
-    <div style="background: #2c2c3e; padding: 30px; border-radius: 15px; margin-top: 40px;">
-    <h2 style="color: #9b59b6;">The Tech Stack</h2>
-    <ul style="list-style: none; padding: 0;">
-        <li style="margin-bottom: 15px;">🚀 <strong>Flask:</strong> Lightning-fast Python backend.</li>
-        <li style="margin-bottom: 15px;">🧠 <strong>BART-Large-MNLI:</strong> A zero-shot classification model that understands context without specific training.</li>
-        <li style="margin-bottom: 15px;">📊 <strong>Confidence Weighing:</strong> Results aren't just guesses; they are mathematically weighed against factual benchmarks.</li>
-    </ul>
-</div>
     <style>
-        body { font-family: Arial, sans-serif; background: #1e1e2f; color: #e0e0e0; padding: 50px; text-align: center; }
-        a { color: #9b59b6; } nav a { margin: 0 15px; font-size: 1.1em; }
-        nav { margin-bottom: 40px; }
-        p { max-width: 700px; margin: 20px auto; line-height: 1.6; }
-        h1 { color: #9b59b6; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #1e1e2f;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            margin: 0;
+        }
+        nav { margin-bottom: 40px; text-align: center; }
+        nav a { margin: 0 15px; font-size: 1.1em; color: #9b59b6; text-decoration: none; font-weight: bold; }
+        
+        h1 { color: #9b59b6; font-size: 2.5em; margin-bottom: 10px; }
+        .container { max-width: 800px; line-height: 1.6; }
+        
+        .mission-card {
+            background: #2c2c3e;
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 5px solid #9b59b6;
+            margin: 20px 0;
+        }
+
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        .step { background: #1e1e2f; padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        .step i { font-size: 2em; display: block; margin-bottom: 10px; }
+
+        .tech-stack {
+            background: #252538;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #444;
+            margin-top: 50px;
+        }
+        .tech-stack h2 { color: #9b59b6; margin-top: 0; }
+        .tech-stack ul { list-style: none; padding: 0; }
+        .tech-stack li { margin-bottom: 12px; padding-left: 25px; position: relative; }
+        .tech-stack li::before { content: "🚀"; position: absolute; left: 0; }
     </style>
 </head>
 <body>
@@ -28,16 +60,48 @@
         <a href="/docs">API Docs</a>
     </nav>
 
-    <h1>About Claim Checker</h1>
-    <p>This is the sixth project created for use with the Grok system by Joseph Herrmann.</p>
-    <p>It’s a free tool designed to help detect potential bias in popular web stories and claims, providing confidence-weighted verdicts using Hugging Face models.</p>
-    <p>The goal is simple: promote clearer thinking and more balanced information in a noisy world.</p>
-    <p>Built with ❤️ using Flask and deployed on Render.</p>
+    <div class="container">
+        <h1>About Claim Checker</h1>
+        <p style="color: #888; text-align: center;">Fighting misinformation through neutral AI analysis.</p>
+
+        <div class="mission-card">
+            <h2>Our Mission</h2>
+            <p>Claim Checker was developed as part of the <strong>Grok System</strong> by Joseph Herrmann. In an era of rapid information flow, our goal is to provide a neutral, third-party assessment of digital claims. We don't tell you what to think; we show you how a machine interprets the balance and bias of a statement.</p>
+        </div>
+
+        <h2 style="text-align: center; margin-top: 50px;">How It Works</h2>
+        
+        <div class="process-grid">
+            <div class="step">
+                <strong>1. Input</strong>
+                <p style="font-size: 0.85em; color: #aaa;">Raw text is sanitized and prepared for the model.</p>
+            </div>
+            <div class="step">
+                <strong>2. Inference</strong>
+                <p style="font-size: 0.85em; color: #aaa;">BART Neural Network weighs text against factual benchmarks.</p>
+            </div>
+            <div class="step">
+                <strong>3. Verdict</strong>
+                <p style="font-size: 0.85em; color: #aaa;">Scores are translated into a human-readable report.</p>
+            </div>
+        </div>
+
+        <div class="tech-stack">
+            <h2>The Tech Stack</h2>
+            <ul>
+                <li><strong>Flask (Python):</strong> Our core engine, handling asynchronous requests and routing.</li>
+                <li><strong>Hugging Face API:</strong> Provides the "brain power" using the BART-Large-MNLI model.</li>
+                <li><strong>Grok Logic:</strong> A custom weighting system to calculate the "Bias Intensity" meter.</li>
+            </ul>
+            <p style="font-size: 0.8em; color: #666; margin-top: 20px;">
+                <em>Note: Our AI uses a massive 1GB neural network. If it's been idle, it may take 20 seconds to "wake up" for your first analysis.</em>
+            </p>
+        </div>
+    </div>
+
+    <footer style="margin-top: 80px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%;">
+        <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
+        <p><a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">GitHub</a></p>
+    </footer>
 </body>
-    <footer style="margin-top: 80px; padding: 20px; text-align: center; color: #888; font-size: 0.9em; border-top: 1px solid #444;">
-    <p>Claim Checker – Built with ❤️ by Joseph Herrmann</p>
-    <p><a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">View on GitHub</a> • 
-    6th project for the Grok system • © 2025</p>
-    <p>Helping promote balanced information, one claim at a time.</p>
-</footer>
 </html>
