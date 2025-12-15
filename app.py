@@ -8,10 +8,11 @@ app = Flask(
     static_folder="ui/static"
 )
 
-# --- UPDATED URL HERE (router.huggingface.co) ---
+# --- 1. THE UPDATED API URL (Router Fix) ---
 HF_API_URL = "https://router.huggingface.co/models/valhalla/distilbart-mnli-12-1"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
 
+# --- 2. PAGE ROUTES ---
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -28,14 +29,17 @@ def about():
 def docs():
     return render_template('docs.html')
 
+# *** THIS IS THE MISSING PART ***
 @app.route('/donate')
 def donate():
     return render_template('donate.html')
+# *******************************
 
 @app.route('/health')
 def health():
     return "OK", 200
 
+# --- 3. ANALYZE LOGIC ---
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -50,16 +54,19 @@ def analyze():
             "parameters": {"candidate_labels": ["factual", "biased", "opinion", "misinformation"]}
         }
         
-        # Call Hugging Face
         response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=20)
-        output = response.json()
+        
+        # Check if the API returned an error text instead of JSON
+        try:
+            output = response.json()
+        except:
+            return jsonify({"error": f"API Error (Not JSON): {response.text}"}), 500
 
-        # CHECK 1: Is the model loading?
+        # Handle "Model Loading"
         if isinstance(output, dict) and "error" in output and "loading" in str(output.get("error")).lower():
             estimated_time = output.get("estimated_time", 15.0)
             return jsonify({"error": "Model loading", "estimated_time": estimated_time}), 503
 
-        # CHECK 2: Did we get a valid result?
         if isinstance(output, dict) and "labels" in output:
             top_label = output['labels'][0]
             confidence = round(output['scores'][0], 2)
