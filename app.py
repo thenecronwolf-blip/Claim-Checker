@@ -8,8 +8,8 @@ app = Flask(
     static_folder="ui/static"
 )
 
-# Get a free API key from huggingface.co
-HF_API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
+# Get a free API key from huggingface.com
+HF_API_URL = "https://api-inference.huggingface.co/models/valhalla/distilbart-mnli-12-1"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
 
 @app.route("/")
