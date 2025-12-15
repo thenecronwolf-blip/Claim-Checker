@@ -1,4 +1,21 @@
+import google.generativeai as genai
 import os
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    data = request.get_json(force=True)
+    text = data.get('text', '')
+    
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    prompt = f"""
+    Analyze this claim for bias and factual accuracy: "{text}"
+    Return ONLY a JSON object with these keys: bias_score (0.0 to 1.0), confidence (0.0 to 1.0), and verdict (string).
+    """
+    
+    response = model.generate_content(prompt)
+    # ... parse the JSON response ...
+
 import requests
 from flask import Flask, jsonify, render_template, request
 
