@@ -3,47 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Docs - Claim Checker</title>
+    <title>API Documentation - Claim Checker</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #1e1e2f; color: #e0e0e0; padding: 50px; }
-        a { color: #9b59b6; } nav a { margin: 0 15px; font-size: 1.1em; }
-        nav { margin-bottom: 40px; text-align: center; }
-        pre { background: #333; padding: 15px; border-radius: 5px; overflow-x: auto; }
-        h1, h2 { color: #9b59b6; text-align: center; }
+        body {
+            font-family: 'Segoe UI', monospace, sans-serif; /* Monospace font looks techy */
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #1e1e2f, #2c2c3e, #1a1a2e, #0f0f1a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        nav { margin-bottom: 50px; font-family: 'Segoe UI', sans-serif; }
+        nav a { color: rgba(255,255,255,0.7); margin: 0 15px; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        nav a:hover { color: #9b59b6; }
+
+        .doc-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        h2 { color: #9b59b6; margin-top: 0; }
+        code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #ff9f43; }
+        pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #333; color: #2ed573; }
+        
+        .method { background: #ff4757; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8em; vertical-align: middle; }
     </style>
 </head>
 <body>
-    <nav style="margin-bottom: 40px; text-align: center;">
-    <a href="/" style="color: #9b59b6; margin: 0 15px; text-decoration: none; font-weight: bold;">Home</a>
-    <a href="/examples" style="color: #9b59b6; margin: 0 15px; text-decoration: none;">Examples</a>
-    <a href="/about" style="color: #9b59b6; margin: 0 15px; text-decoration: none;">About</a>
-    <a href="/donate" style="color: #ff4757; margin: 0 15px; text-decoration: none; font-weight: bold;">♥ Donate</a>
-</nav>
 
-    <h1>API Documentation</h1>
-    <h2>Endpoint: POST /analyze</h2>
-    <p>Send JSON with a <code>text</code> field containing the claim or story.</p>
-    <pre>curl -X POST https://claim-checker.onrender.com/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Your claim or news story here"}'</pre>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/examples">Examples</a>
+        <a href="/about">About</a>
+        <a href="/donate" style="color: #ff4757;">♥ Donate</a>
+    </nav>
 
-    <h2>Example Response</h2>
-    <pre>{
+    <div class="doc-card">
+        <h2>Endpoint: /analyze</h2>
+        <p>Analyzes text for subjective patterns, bias intensity, and source origin.</p>
+        
+        <p><strong>URL:</strong> <code>https://claim-checker.onrender.com/analyze</code></p>
+        <p><strong>Method:</strong> <span class="method">POST</span></p>
+        
+        <h3>Request Body (JSON)</h3>
+        <pre>{
+  "text": "The claim you want to verify goes here."
+}</pre>
+
+        <h3>Success Response</h3>
+        <pre>{
   "result": {
-    "bias_score": 0.75,
-    "confidence": 0.82,
-    "verdict": "Moderate potential bias detected"
+    "bias_score": 0.85,
+    "confidence": 0.92,
+    "label": "biased",
+    "source_type": "Social Media",
+    "verdict": "Highly Subjective – Relies on emotional language..."
   }
 }</pre>
-</body>
-        <div style="flex-grow: 1;"></div>
+    </div>
 
-    <footer style="margin-top: 80px; padding: 30px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85em; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 800px;">
-        <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
-        <p>
-            <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none; transition: color 0.2s;">GitHub</a> • 
-            <a href="/docs" style="color: #9b59b6; text-decoration: none; transition: color 0.2s;">API Access</a>
-        </p>
-        <p>© 2025 Grok System Development</p>
+    <div style="flex-grow: 1;"></div>
+    
+    <footer style="margin-top: 60px; padding: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85em; width: 100%;">
+        <p>Claim Checker API • © 2025 Grok System Development</p>
     </footer>
+</body>
 </html>
