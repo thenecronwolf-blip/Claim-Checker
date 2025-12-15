@@ -123,16 +123,48 @@
     }
 
 async function analyzeText() {
-    const text = document.getElementById('inputText').value.trim();
-    const resultDiv = document.getElementById('result');
-    const spinner = document.getElementById('spinner');
-    const btn = document.getElementById('analyzeBtn');
+    // ... setup ...
+    const fetchAnalysis = async () => {
+        return await fetch('/analyze', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ text })
+        });
+    };
 
-    if (!text) {
-        resultDiv.style.opacity = "1";
-        resultDiv.innerHTML = "<p style='color: #ff6b6b; text-align:center;'>Please enter some text to analyze.</p>";
-        return;
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (attempts < maxAttempts) {
+        try {
+            const response = await fetchAnalysis();
+            
+            // If 503, the server is telling us to wait.
+            if (response.status === 503) {
+                const data = await response.json();
+                const waitTime = data.estimated_time || 20;
+                
+                btn.textContent = `AI Waking Up... (${waitTime.toFixed(0)}s)`;
+                
+                // Wait here in the browser, NOT on the server
+                await new Promise(r => setTimeout(r, (waitTime * 1000)));
+                attempts++;
+                continue; // Loop back and try again
+            }
+
+            // If success, show results and break loop
+            if (response.ok) {
+                const data = await response.json();
+                // ... Render your result HTML here ...
+                return; 
+            }
+        } catch (e) {
+            console.error(e);
+        }
     }
+    
+    resultDiv.innerHTML = "Server timed out. Please try again.";
+}
 
     resultDiv.style.opacity = "0";
     spinner.style.display = "block";
