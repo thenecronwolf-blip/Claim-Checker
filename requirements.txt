@@ -1,9 +1,3 @@
-fastapi
-Flask
-google-generativeai
-gunicorn
-uvicorn
+flask
 requests
-huggingface-hub
-pydantic
-slowapi
+gunicor
