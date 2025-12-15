@@ -1,7 +1,6 @@
 import os
 import random
 import time
-import re
 from flask import Flask, jsonify, render_template, request
 
 app = Flask(
@@ -35,7 +34,8 @@ def donate():
 def health():
     return "OK", 200
 
-# --- THE ADVANCED LOGIC ENGINE (v2.0) ---
+# --- ADVANCED LOGIC ENGINE v2.5 ---
+# This runs locally to avoid API errors and ensures a perfect demo every time.
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -43,77 +43,83 @@ def analyze():
         raw_text = data.get('text', '')
         text = raw_text.lower().strip()
         
-        # Simulate processing time for the "Wow" effect
+        # Simulate "AI Processing" time for the visual effect
         time.sleep(1.2) 
 
-        # --- SCOREBOARD ---
-        # We start at 0. Negative = Biased. Positive = Factual.
+        # --- 1. CORE SCORING SYSTEM ---
+        # Starts at 0. Positive = Factual. Negative = Biased.
         score = 0
         
-        # 1. FACTUAL TRIGGERS (Weighted)
-        # Strong evidence gets +2, Standard gets +1
-        factual_strong = ['study published', 'peer-reviewed', 'meta-analysis', 'official report', 'census bureau', 'proven by', 'verified', 'evidence shows']
-        factual_std = ['according to', 'data', 'percent', '2024', '2023', 'researchers', 'scientists', 'confirmed', 'report', 'statistics', 'record', 'average', 'increase', 'decrease']
+        # Factual Triggers
+        factual_strong = ['study published', 'peer-reviewed', 'meta-analysis', 'official report', 'census bureau', 'verified', 'evidence shows']
+        factual_std = ['according to', 'data', 'percent', '2024', 'researchers', 'confirmed', 'report', 'statistics', 'record', 'average']
         
         for phrase in factual_strong:
             if phrase in text: score += 2.5
         for word in factual_std:
             if word in text: score += 1.0
 
-        # 2. SUBJECTIVE TRIGGERS (Weighted)
-        # Emotional/Manipulative words get -2 or -1
-        bias_strong = ['unbelievable', 'shocking', 'disgrace', 'destroy', 'catastrophe', 'miracle', 'worst ever', 'best ever', 'hate', 'love', 'stupid', 'genius']
-        bias_std = ['feel', 'opinion', 'believe', 'think', 'maybe', 'rumor', 'people say', 'seems', 'might', 'probably', 'amazing', 'terrible', 'huge']
+        # Bias Triggers
+        bias_strong = ['unbelievable', 'shocking', 'disgrace', 'destroy', 'catastrophe', 'worst ever', 'best ever', 'stupid', 'miracle', 'hoax']
+        bias_std = ['feel', 'opinion', 'believe', 'think', 'rumor', 'people say', 'seems', 'amazing', 'terrible', 'huge', 'maybe']
         
         for phrase in bias_strong:
             if phrase in text: score -= 2.5
         for word in bias_std:
             if word in text: score -= 1.0
 
-        # 3. PATTERN DETECTION (Formatting)
-        # ALL CAPS usually implies yelling/bias
+        # Syntax Penalties (Caps Lock / Exclamations)
         caps_count = sum(1 for c in raw_text if c.isupper())
         if len(raw_text) > 10 and (caps_count / len(raw_text) > 0.4):
             score -= 3.0 # Penalty for shouting
-
-        # Excessive punctuation (e.g. "Real???!!")
+        
         if "!!" in raw_text or "??" in raw_text:
             score -= 1.5
 
-        # --- THE VERDICT CALCULATOR ---
+        # --- 2. SOURCE INTELLIGENCE (New Feature) ---
+        # Guesses the origin of the text based on style
+        source_type = "General Web Content" # Default
+        
+        if any(x in text for x in ['doi', 'citation', 'abstract', 'et al', 'figure', 'table 1']):
+            source_type = "Academic / Scientific"
+        elif any(x in text for x in ['breaking', 'headline', 'report', 'sources say', 'official statement', 'correspondent']):
+            source_type = "News Media"
+        elif any(x in text for x in ['lol', 'omg', 'u', 'ur', 'hashtag', '@', '#', 'thread', 'dm me']):
+            source_type = "Social Media (Informal)"
+        elif "!" in raw_text and ("click" in text or "watch" in text or "won't believe" in text or "secret" in text):
+            source_type = "Clickbait / Ad Copy"
+
+        # --- 3. VERDICT GENERATION ---
         if score >= 2.0:
-            # High Factuality
             label = "factual"
             bias_score = random.uniform(0.05, 0.20)
             confidence = random.uniform(0.88, 0.99)
             verdict = "Likely Factual – This statement cites specific data points or research terminology with neutral phrasing."
 
         elif score <= -2.0:
-            # High Bias
             label = "biased"
             bias_score = random.uniform(0.75, 0.98)
             confidence = random.uniform(0.90, 0.99)
             verdict = "Highly Subjective – The text relies on emotional language, capitalization, or unverified claims to persuade."
 
-        elif -2.0 < score < 2.0:
-            # The "Grey Area" (Opinion or Mixed)
-            # If the text is very short, confidence drops
+        else:
+            # The "Grey Area"
             label = "opinion"
             bias_score = random.uniform(0.40, 0.60)
             confidence = random.uniform(0.60, 0.85)
-            
             if len(text.split()) < 5:
                 verdict = "Insufficient Context – The statement is too short to definitively categorize, but appears neutral."
             else:
                 verdict = "Mixed / Opinion – This text contains a blend of factual references and personal interpretation."
 
-        # --- RETURN RESULT ---
+        # Return Data to Frontend
         return jsonify({
             "result": {
                 "bias_score": round(bias_score, 2),
                 "confidence": round(confidence, 2),
                 "verdict": verdict,
-                "label": label
+                "label": label,
+                "source_type": source_type
             }
         })
 
