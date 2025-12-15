@@ -8,9 +8,9 @@ app = Flask(
     static_folder="ui/static"
 )
 
-# --- CONFIGURATION ---
-# We use the official Facebook model on the new Router URL.
-# This model is 100% guaranteed to exist.
+# --- THE GOLD STANDARD URL ---
+# We use the new Router (to satisfy the "deprecated" error)
+# BUT we use the Facebook model (to satisfy the "Not Found" error)
 HF_API_URL = "https://router.huggingface.co/models/facebook/bart-large-mnli"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
 
@@ -39,7 +39,7 @@ def donate():
 def health():
     return "OK", 200
 
-# --- API ROUTES ---
+# --- API LOGIC ---
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -54,21 +54,21 @@ def analyze():
             "parameters": {"candidate_labels": ["factual", "biased", "opinion", "misinformation"]}
         }
         
-        # Call Hugging Face API
+        # Send request to Hugging Face
         response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=20)
         
-        # Handle Non-JSON Responses
+        # Safe JSON parsing
         try:
             output = response.json()
         except:
-            return jsonify({"error": f"External API Error: {response.text}"}), 500
+            return jsonify({"error": f"API Error (Not JSON): {response.text}"}), 500
 
-        # Handle Model Loading State (503)
+        # Handle Model Loading (503)
         if isinstance(output, dict) and "error" in output and "loading" in str(output.get("error")).lower():
             estimated_time = output.get("estimated_time", 15.0)
             return jsonify({"error": "Model loading", "estimated_time": estimated_time}), 503
 
-        # Process Success
+        # Handle Success
         if isinstance(output, dict) and "labels" in output:
             top_label = output['labels'][0]
             confidence = round(output['scores'][0], 2)
