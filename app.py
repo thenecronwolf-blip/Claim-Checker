@@ -8,8 +8,8 @@ app = Flask(
     static_folder="ui/static"
 )
 
-# Option 1: Using the FASTER DistilBART model
-HF_API_URL = "https://api-inference.huggingface.co/models/valhalla/distilbart-mnli-12-1"
+# --- UPDATED URL HERE (router.huggingface.co) ---
+HF_API_URL = "https://router.huggingface.co/models/valhalla/distilbart-mnli-12-1"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
 
 @app.route("/")
@@ -45,7 +45,6 @@ def analyze():
         if not text:
             return jsonify({"error": "Please enter some text!"}), 400
 
-        # Define the payload (This was missing in your snippet!)
         payload = {
             "inputs": text,
             "parameters": {"candidate_labels": ["factual", "biased", "opinion", "misinformation"]}
@@ -57,7 +56,6 @@ def analyze():
 
         # CHECK 1: Is the model loading?
         if isinstance(output, dict) and "error" in output and "loading" in str(output.get("error")).lower():
-            # Send a specific 503 error so the frontend knows to wait
             estimated_time = output.get("estimated_time", 15.0)
             return jsonify({"error": "Model loading", "estimated_time": estimated_time}), 503
 
@@ -73,7 +71,6 @@ def analyze():
                 "misinformation": "Caution – This matches patterns of misinformation."
             }
 
-            # Return the Clean Result
             result = {
                 "bias_score": confidence if top_label != "factual" else 1 - confidence,
                 "confidence": confidence,
@@ -81,7 +78,6 @@ def analyze():
             }
             return jsonify({"result": result})
 
-        # Fallback if the API returns something unexpected
         return jsonify({"error": f"API Error: {output}"}), 500
 
     except Exception as e:
