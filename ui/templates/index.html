@@ -6,53 +6,82 @@
     <title>Claim Checker</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             background: #1e1e2f;
             color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 50px;
+            margin: 0;
         }
-        h1 {
-            color: #9b59b6;
-        }
+        h1 { color: #9b59b6; font-size: 2.5em; margin-bottom: 10px; }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        
         textarea {
             width: 100%;
             max-width: 600px;
             height: 120px;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            background: #2c2c3e;
+            color: white;
             font-size: 16px;
-            margin-bottom: 20px;
+            transition: border 0.3s;
+            outline: none;
         }
+        textarea:focus { border-color: #9b59b6; }
+
         button {
             background: #9b59b6;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 30px;
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             font-size: 16px;
-        }
-        button:hover {
-            background: #8e44ad;
-        }
-        button:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-        #result {
+            font-weight: bold;
             margin-top: 20px;
-            max-width: 600px;
-            padding: 15px;
-            background: #2c2c3e;
-            border-radius: 5px;
-            word-wrap: break-word;
-            min-height: 50px;
+            transition: transform 0.2s, background 0.2s;
         }
-        /* Loading Spinner */
+        button:hover { background: #8e44ad; transform: translateY(-2px); }
+        button:disabled { background: #666; cursor: not-allowed; }
+
+        #result {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 600px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        /* Gauge Visuals */
+        .meter-container {
+            width: 100%;
+            background: #333;
+            border-radius: 10px;
+            height: 12px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Fallacy Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
         .spinner {
             border: 4px solid #2c2c3e;
             border-top: 4px solid #9b59b6;
@@ -61,25 +90,24 @@
             height: 40px;
             animation: spin 1s linear infinite;
             margin: 20px auto;
-            display: none; /* Hidden by default */
+            display: none;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <nav style="margin-bottom: 40px; text-align: center; font-size: 1.1em;">
-    <a href="/" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">Home</a>
-    <a href="/examples" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">Examples</a>
-    <a href="/about" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">About</a>
-    <a href="/docs" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">API Docs</a>
-</nav>
+    <nav style="margin-bottom: 40px; text-align: center;">
+        <a href="/" style="color: #9b59b6; margin: 0 20px; text-decoration: none; font-weight: bold;">Home</a>
+        <a href="/examples" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">Examples</a>
+        <a href="/about" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">About</a>
+        <a href="/docs" style="color: #9b59b6; margin: 0 20px; text-decoration: none;">API Docs</a>
+    </nav>
     
     <h1>Claim Checker</h1>
-    <textarea id="inputText" placeholder="Enter text to analyze..."></textarea>
-    <button id="analyzeBtn" onclick="analyzeText()">Analyze</button>
+    <p class="subtitle">AI-powered objectivity and bias analysis</p>
+    
+    <textarea id="inputText" placeholder="Paste a claim, news snippet, or statement here..."></textarea>
+    <button id="analyzeBtn" onclick="analyzeText()">Analyze Statement</button>
     
     <div class="spinner" id="spinner"></div>
     <div id="result"></div>
@@ -91,16 +119,17 @@
         const spinner = document.getElementById('spinner');
         const btn = document.getElementById('analyzeBtn');
 
-        // Clear previous result and show loading state
-        resultDiv.innerHTML = "";
-        if (text === "") {
-            resultDiv.innerHTML = "<p style='color: #ff6b6b;'>Please enter some text to analyze.</p>";
+        if (!text) {
+            resultDiv.style.opacity = "1";
+            resultDiv.innerHTML = "<p style='color: #ff6b6b; text-align:center;'>Please enter some text to analyze.</p>";
             return;
         }
 
+        // UI Reset
+        resultDiv.style.opacity = "0";
         spinner.style.display = "block";
         btn.disabled = true;
-        btn.textContent = "Analyzing...";
+        btn.textContent = "Processing...";
 
         try {
             const response = await fetch('/analyze', {
@@ -109,58 +138,75 @@
                 body: JSON.stringify({ text })
             });
 
-            const data = await response.json();
+            const res = await response.json();
 
             if (response.ok) {
-                const res = data.result;
-
-                let html = `
-                    <h3 style="margin-bottom: 15px; color: #bb86fc;">Analysis Result</h3>
-                    
-                    <div style="margin: 20px 0;">
-                        <strong>Bias Score: ${res.bias_score.toFixed(2)}</strong>
-                        <div style="width: 100%; height: 30px; background: #333; border-radius: 8px; overflow: hidden; margin-top: 8px;">
-                            <div style="
-                                width: ${res.bias_score * 100}%;
-                                height: 100%;
-                                background: linear-gradient(to right, #4CAF50, #FFEB3B, #F44336);
-                                transition: width 1.2s ease-in-out;
-                            "></div>
+                // Determine colors based on bias
+                const biasColor = res.bias_score > 0.6 ? '#f44336' : res.bias_score > 0.3 ? '#ffeb3b' : '#4caf50';
+                
+                resultDiv.innerHTML = `
+                    <div style="background: #2c2c3e; padding: 25px; border-radius: 15px; border: 1px solid #444;">
+                        <h3 style="margin: 0 0 20px 0; color: #9b59b6; border-bottom: 1px solid #444; padding-bottom: 10px;">Analysis Report</h3>
+                        
+                        <div style="margin-bottom: 25px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
+                                <span>Bias Intensity</span>
+                                <span style="color: ${biasColor}">${(res.bias_score * 100).toFixed(0)}%</span>
+                            </div>
+                            <div class="meter-container">
+                                <div id="biasMeter" class="meter-fill" style="background: ${biasColor};"></div>
+                            </div>
                         </div>
-                        <p style="font-size: 0.9em; color: #aaa; margin-top: 5px;">Low (green) ← → High (red)</p>
-                    </div>
 
-                    <div style="margin: 20px 0;">
-                        <strong>Confidence: ${res.confidence.toFixed(2)}</strong>
-                        <div style="width: 100%; height: 20px; background: #333; border-radius: 8px; overflow: hidden; margin-top: 8px;">
-                            <div style="width: ${res.confidence * 100}%; height: 100%; background: #9b59b6; transition: width 1s ease;"></div>
+                        <div style="margin-bottom: 25px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
+                                <span>AI Confidence</span>
+                                <span>${(res.confidence * 100).toFixed(0)}%</span>
+                            </div>
+                            <div class="meter-container">
+                                <div id="confMeter" class="meter-fill" style="background: #9b59b6;"></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div style="margin: 20px 0; padding: 15px; background: #2c2c3e; border-radius: 8px; text-align: left;">
-                        <strong>Verdict:</strong><br>${res.verdict}
+                        <div style="background: #1e1e2f; padding: 15px; border-radius: 10px;">
+                            <strong style="color: #888; font-size: 0.8em; text-transform: uppercase;">Verdict</strong>
+                            <p style="margin: 10px 0 0 0; line-height: 1.5;">${res.verdict}</p>
+                            ${res.bias_score > 0.7 ? '<span class="badge" style="background: #ff4b2b22; color: #ff4b2b; border: 1px solid #ff4b2b;">Subjective Language Detected</span>' : ''}
+                        </div>
                     </div>
                 `;
+                
+                resultDiv.style.opacity = "1";
+                
+                // Trigger animations after a tiny delay
+                setTimeout(() => {
+                    document.getElementById('biasMeter').style.width = (res.bias_score * 100) + "%";
+                    document.getElementById('confMeter').style.width = (res.confidence * 100) + "%";
+                }, 100);
 
-                resultDiv.innerHTML = html;
             } else {
-                resultDiv.innerHTML = `<p style="color: #ff6b6b;">Error: ${data.error || 'Something went wrong'}</p>`;
+                resultDiv.style.opacity = "1";
+                resultDiv.innerHTML = `<p style="color: #ff6b6b;">Error: ${res.error || 'Check backend console'}</p>`;
             }
         } catch (err) {
+            resultDiv.style.opacity = "1";
             resultDiv.innerHTML = `<p style="color: #ff6b6b;">Connection error: ${err.message}</p>`;
         } finally {
-            // Hide loading state
             spinner.style.display = "none";
             btn.disabled = false;
-            btn.textContent = "Analyze";
+            btn.textContent = "Analyze Statement";
         }
     }
 </script>
-    <footer style="margin-top: 80px; padding: 20px; text-align: center; color: #888; font-size: 0.9em; border-top: 1px solid #444;">
-    <p>Claim Checker – Built with ❤️ by Joseph Herrmann</p>
-    <p><a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">View on GitHub</a> • 
-    6th project for the Grok system • © 2025</p>
-    <p>Helping promote balanced information, one claim at a time.</p>
+
+<footer style="margin-top: 80px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%;">
+    <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
+    <p>
+        <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none;">GitHub</a> • 
+        <a href="/docs" style="color: #9b59b6; text-decoration: none;">API Access</a>
+    </p>
+    <p>© 2025 Grok System Development</p>
 </footer>
 </body>
 </html>
+
