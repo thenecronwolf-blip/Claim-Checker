@@ -1,21 +1,4 @@
-import google.generativeai as genai
 import os
-
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-@app.route('/analyze', methods=['POST'])
-def analyze():
-    data = request.get_json(force=True)
-    text = data.get('text', '')
-    
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    prompt = f"""
-    Analyze this claim for bias and factual accuracy: "{text}"
-    Return ONLY a JSON object with these keys: bias_score (0.0 to 1.0), confidence (0.0 to 1.0), and verdict (string).
-    """
-    
-    response = model.generate_content(prompt)
-    # ... parse the JSON response ...
-
 import requests
 from flask import Flask, jsonify, render_template, request
 
@@ -25,7 +8,7 @@ app = Flask(
     static_folder="ui/static"
 )
 
-# Get a free API key from huggingface.com
+# Option 1: Using the FASTER DistilBART model
 HF_API_URL = "https://api-inference.huggingface.co/models/valhalla/distilbart-mnli-12-1"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
 
@@ -51,24 +34,51 @@ def health():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    # ... setup code ...
-    response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload)
-    output = response.json()
+    try:
+        data = request.get_json(force=True)
+        text = data.get('text', '').strip()
 
-    # If HF says it's loading, return that info to frontend IMMEDIATELY
-    if isinstance(output, dict) and "error" in output and "loading" in output["error"].lower():
-        estimated_time = output.get("estimated_time", 20.0)
-        return jsonify({"error": "Model loading", "estimated_time": estimated_time}), 503
+        if not text:
+            return jsonify({"error": "Please enter some text!"}), 400
 
-    if "labels" in output:
-        # ... process your result ...
-        return jsonify({"result": result})
-    
-    return jsonify({"error": "Unknown error"}), 500
+        # Define the payload (This was missing in your snippet!)
+        payload = {
+            "inputs": text,
+            "parameters": {"candidate_labels": ["factual", "biased", "opinion", "misinformation"]}
+        }
+        
+        # Call Hugging Face
+        response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=20)
+        output = response.json()
 
-else:
-            # Handle model loading (Model is 500mb+, takes time to load on first hit)
-            return jsonify({"error": "AI model is initializing. Please try again in 20 seconds."}), 503
+        # CHECK 1: Is the model loading?
+        if isinstance(output, dict) and "error" in output and "loading" in str(output.get("error")).lower():
+            # Send a specific 503 error so the frontend knows to wait
+            estimated_time = output.get("estimated_time", 15.0)
+            return jsonify({"error": "Model loading", "estimated_time": estimated_time}), 503
+
+        # CHECK 2: Did we get a valid result?
+        if isinstance(output, dict) and "labels" in output:
+            top_label = output['labels'][0]
+            confidence = round(output['scores'][0], 2)
+            
+            verdict_map = {
+                "factual": "Likely Factual – The statement appears objective.",
+                "biased": "Bias Detected – This text contains subjective language.",
+                "opinion": "Opinion – This appears to be a personal view.",
+                "misinformation": "Caution – This matches patterns of misinformation."
+            }
+
+            # Return the Clean Result
+            result = {
+                "bias_score": confidence if top_label != "factual" else 1 - confidence,
+                "confidence": confidence,
+                "verdict": verdict_map.get(top_label, "Analysis complete.")
+            }
+            return jsonify({"result": result})
+
+        # Fallback if the API returns something unexpected
+        return jsonify({"error": f"API Error: {output}"}), 500
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
