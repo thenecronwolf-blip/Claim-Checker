@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Chibi Joey!</title>
+    <style>
+        :root {
+            --primary-blue: #2c75ff; /* Joey's hair color */
+            --xmas-red: #ff4757;      /* Santa hat color */
+            --snow-white: #ffffff;
+            --bg-dark: #1e272e;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at center, #2f3640 0%, #000000 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: var(--snow-white);
+        }
+
+        /* --- BACKGROUND SNOW ANIMATION --- */
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            animation: fall linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(105vh); }
+        }
+
+        /* --- MAIN CARD --- */
+        .donation-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(44, 117, 255, 0.2);
+            position: relative;
+            z-index: 10;
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* --- CHIBI JOEY IMAGE --- */
+        .joey-container {
+            width: 150px;
+            height: 150px;
+            margin: -90px auto 20px; /* Pulls image up out of card */
+            border-radius: 50%;
+            border: 5px solid var(--primary-blue);
+            background: var(--snow-white);
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            animation: joeyBounce 3s infinite ease-in-out;
+            position: relative;
+        }
+
+        .joey-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes joeyBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            margin: 10px 0 5px;
+            font-size: 1.8em;
+            background: linear-gradient(to right, var(--primary-blue), var(--xmas-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        p.subtitle {
+            color: #ccc;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        /* --- AMOUNT SELECTORS --- */
+        .amount-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .amount-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .amount-btn:hover {
+            background: rgba(44, 117, 255, 0.3);
+            border-color: var(--primary-blue);
+        }
+
+        .amount-btn.selected {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 15px var(--primary-blue);
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            outline: none;
+        }
+        .custom-input:focus {
+            border-color: var(--primary-blue);
+        }
+
+        /* --- APPLE PAY BUTTON STYLE --- */
+        .apple-pay-btn {
+            background-color: black;
+            background-image: -webkit-named-image(apple-pay-logo-white);
+            background-size: 100% 100%;
+            background-origin: content-box;
+            background-repeat: no-repeat;
+            width: 100%;
+            height: 48px;
+            padding: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #333;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+            text-decoration: none; /* In case we use an <a> tag */
+        }
+
+        /* Fallback text if image doesn't load on non-safari */
+        .apple-pay-btn span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .apple-pay-btn:hover {
+            transform: scale(1.02);
+            background-color: #111;
+        }
+        
+        .apple-icon {
+            font-size: 1.4em;
+            margin-bottom: 4px;
+        }
+
+        /* --- FOOTER --- */
+        .footer-text {
+            margin-top: 20px;
+            font-size: 0.7em;
+            color: #666;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="donation-card">
+        <div class="joey-container">
+            <img src="chibi-joey.png" alt="Chibi Joey" class="joey-img" onerror="this.src='https://placehold.co/150x150/2c75ff/white?text=Joey'">
+        </div>
+
+        <h1>Support Joey!</h1>
+        <p class="subtitle">Fueling the cuteness, one coffee at a time.</p>
+
+        <div class="amount-grid">
+            <button class="amount-btn" onclick="selectAmount(5)">$5</button>
+            <button class="amount-btn selected" onclick="selectAmount(10)">$10</button>
+            <button class="amount-btn" onclick="selectAmount(20)">$20</button>
+        </div>
+
+        <input type="number" id="customAmount" class="custom-input" placeholder="Custom Amount" oninput="clearButtons()">
+
+        <button class="apple-pay-btn" onclick="processDonation()">
+            <span> Donate with Apple Pay</span>
+        </button>
+
+        <p class="footer-text">Secure payments processed via Stripe/PayPal to necronwolf1</p>
+    </div>
+
+    <script>
+        let currentAmount = 10;
+
+        // 1. Logic to handle button selection
+        function selectAmount(amount) {
+            currentAmount = amount;
+            // Visual updates
+            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            document.getElementById('customAmount').value = ''; // Clear custom input
+        }
+
+        function clearButtons() {
+            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
+            currentAmount = document.getElementById('customAmount').value;
+        }
+
+        // 2. Logic to Process the Donation
+        function processDonation() {
+            // === CRITICAL STEP FOR USER ===
+            // Since you cannot process Apple Pay directly in static HTML without a backend,
+            // the best way is to generate a Payment Link from Stripe or PayPal.
+            
+            // OPTION A: If you have a Stripe Payment Link (Best for Apple Pay)
+            // It usually looks like: https://buy.stripe.com/unique_code
+            // You can append ?client_reference_id= or similar depending on setup, 
+            // but usually you just send them to the general donate page.
+            
+            // OPTION B: PayPal Donate Link (Good for the email you provided)
+            // https://www.paypal.com/donate/?business=necronwolf1@gmail.com&amount=...
+            
+            // HERE IS THE LOGIC TO USE PAYPAL (Simplest for your email):
+            if (!currentAmount || currentAmount <= 0) {
+                alert("Please select a valid amount!");
+                return;
+            }
+
+            // Construct PayPal URL
+            const email = "necronwolf1@gmail.com"; 
+            // Note: For this to work perfectly, you should generate a "PayPal.me" link 
+            // or a formal Donate Button link in PayPal settings. 
+            // Below is a generic redirect to PayPal.me which is safest for personal emails.
+            
+            const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=${email}&currency_code=USD&amount=${currentAmount}&item_name=Support+Joey`;
+            
+            // Visual feedback
+            const btn = document.querySelector('.apple-pay-btn');
+            btn.innerHTML = "<span>Processing...</span>";
+            
+            setTimeout(() => {
+                window.location.href = paypalUrl;
+            }, 800);
+        }
+
+        // 3. Create Snowflakes
+        function createSnow() {
+            const snow = document.createElement('div');
+            snow.classList.add('snowflake');
+            snow.innerHTML = '❄';
+            snow.style.left = Math.random() * 100 + 'vw';
+            snow.style.animationDuration = Math.random() * 3 + 2 + 's'; // between 2-5s
+            snow.style.opacity = Math.random();
+            snow.style.fontSize = Math.random() * 10 + 10 + 'px';
+            
+            document.body.appendChild(snow);
+            
+            setTimeout(() => {
+                snow.remove();
+            }, 5000);
+        }
+
+        setInterval(createSnow, 100);
+
+    </script>
+</body>
+</html>
