@@ -205,6 +205,16 @@
     }
 }
 
+// Add this inside your existing <script> tag
+window.onload = () => {
+    const pending = localStorage.getItem('pendingClaim');
+    if (pending) {
+        document.getElementById('inputText').value = pending;
+        localStorage.removeItem('pendingClaim'); // Clear it so it doesn't loop
+        analyzeText(); // Trigger the analysis automatically!
+    }
+}
+
 </script>
 
 <footer style="margin-top: 80px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%;">
