@@ -6,108 +6,79 @@
     <title>About - Claim Checker</title>
     <style>
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #1e1e2f;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 50px;
             margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #1e1e2f, #2c2c3e, #1a1a2e, #0f0f1a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
         }
-        nav { margin-bottom: 40px; text-align: center; }
-        nav a { margin: 0 15px; font-size: 1.1em; color: #9b59b6; text-decoration: none; font-weight: bold; }
-        
-        h1 { color: #9b59b6; font-size: 2.5em; margin-bottom: 10px; }
-        .container { max-width: 800px; line-height: 1.6; }
-        
-        .mission-card {
-            background: #2c2c3e;
-            padding: 30px;
-            border-radius: 15px;
-            border-left: 5px solid #9b59b6;
-            margin: 20px 0;
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        nav { margin-bottom: 50px; }
+        nav a { color: rgba(255,255,255,0.7); margin: 0 15px; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        nav a:hover { color: #9b59b6; }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        .process-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin: 40px 0;
-            text-align: center;
-        }
-        .step { background: #1e1e2f; padding: 20px; border-radius: 10px; border: 1px solid #333; }
-        .step i { font-size: 2em; display: block; margin-bottom: 10px; }
-
-        .tech-stack {
-            background: #252538;
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #444;
-            margin-top: 50px;
-        }
-        .tech-stack h2 { color: #9b59b6; margin-top: 0; }
-        .tech-stack ul { list-style: none; padding: 0; }
-        .tech-stack li { margin-bottom: 12px; padding-left: 25px; position: relative; }
-        .tech-stack li::before { content: "🚀"; position: absolute; left: 0; }
+        h1 { margin-top: 0; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        p { line-height: 1.6; color: #ccc; }
+        h3 { color: #9b59b6; margin-top: 30px; }
+        ul { color: #ccc; line-height: 1.6; }
+        li { margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <nav style="margin-bottom: 40px; text-align: center;">
-    <a href="/" style="color: #9b59b6; margin: 0 15px; text-decoration: none; font-weight: bold;">Home</a>
-    <a href="/examples" style="color: #9b59b6; margin: 0 15px; text-decoration: none;">Examples</a>
-    <a href="/about" style="color: #9b59b6; margin: 0 15px; text-decoration: none;">About</a>
-    <a href="/donate" style="color: #ff4757; margin: 0 15px; text-decoration: none; font-weight: bold;">♥ Donate</a>
-</nav>
 
-    <div class="container">
-        <h1>About Claim Checker</h1>
-        <p style="color: #888; text-align: center;">Fighting misinformation through neutral AI analysis.</p>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/examples">Examples</a>
+        <a href="/about" style="color: #9b59b6;">About</a>
+        <a href="/donate" style="color: #ff4757;">♥ Donate</a>
+    </nav>
 
-        <div class="mission-card">
-            <h2>Our Mission</h2>
-            <p>Claim Checker was developed as part of the <strong>Grok System</strong> by Joseph Herrmann. In an era of rapid information flow, our goal is to provide a neutral, third-party assessment of digital claims. We don't tell you what to think; we show you how a machine interprets the balance and bias of a statement.</p>
-        </div>
+    <div class="content-card">
+        <h1>About the Project</h1>
+        <p>
+            Claim Checker is an experimental AI safety tool designed to detect subjective language, emotional manipulation, and potential misinformation in real-time.
+        </p>
 
-        <h2 style="text-align: center; margin-top: 50px;">How It Works</h2>
-        
-        <div class="process-grid">
-            <div class="step">
-                <strong>1. Input</strong>
-                <p style="font-size: 0.85em; color: #aaa;">Raw text is sanitized and prepared for the model.</p>
-            </div>
-            <div class="step">
-                <strong>2. Inference</strong>
-                <p style="font-size: 0.85em; color: #aaa;">BART Neural Network weighs text against factual benchmarks.</p>
-            </div>
-            <div class="step">
-                <strong>3. Verdict</strong>
-                <p style="font-size: 0.85em; color: #aaa;">Scores are translated into a human-readable report.</p>
-            </div>
-        </div>
+        <h3>Our Mission</h3>
+        <p>
+            In the age of rapid information, distinguishing between **verifiable fact** and **persuasive opinion** is critical. This tool provides an objective "second opinion" to help users consume content more critically.
+        </p>
 
-        <div class="tech-stack">
-            <h2>The Tech Stack</h2>
-            <ul>
-                <li><strong>Flask (Python):</strong> Our core engine, handling asynchronous requests and routing.</li>
-                <li><strong>Hugging Face API:</strong> Provides the "brain power" using the BART-Large-MNLI model.</li>
-                <li><strong>Grok Logic:</strong> A custom weighting system to calculate the "Bias Intensity" meter.</li>
-            </ul>
-            <p style="font-size: 0.8em; color: #666; margin-top: 20px;">
-                <em>Note: Our AI uses a massive 1GB neural network. If it's been idle, it may take 20 seconds to "wake up" for your first analysis.</em>
-            </p>
-        </div>
+        <h3>How It Works</h3>
+        <ul>
+            <li><strong>Syntax Analysis:</strong> We scan for patterns often used in sensationalism (e.g., excessive capitalization, specific punctuation).</li>
+            <li><strong>Sentiment Weighting:</strong> Subjective terms ("terrible", "amazing") lower the credibility score, while data-driven terms ("study", "percent") raise it.</li>
+            <li><strong>Source Intelligence:</strong> The system estimates the origin of the text (e.g., Academic vs. Social Media) based on linguistic markers.</li>
+        </ul>
     </div>
 
-        <div style="flex-grow: 1;"></div>
-
-    <footer style="margin-top: 80px; padding: 30px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85em; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 800px;">
+    <div style="flex-grow: 1;"></div>
+    
+    <footer style="margin-top: 60px; padding: 30px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85em; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 800px;">
         <p>Claim Checker • Built with 💙 by Joseph Herrmann</p>
         <p>
-            <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none; transition: color 0.2s;">GitHub</a> • 
-            <a href="/docs" style="color: #9b59b6; text-decoration: none; transition: color 0.2s;">API Access</a>
+            <a href="https://github.com/thenecronwolf-blip/Claim-Checker" style="color: #9b59b6; text-decoration: none; font-weight: bold; margin: 0 10px;">GitHub</a> • 
+            <a href="/docs" style="color: #9b59b6; text-decoration: none; font-weight: bold; margin: 0 10px;">API Docs</a>
         </p>
-        <p>© 2025 Grok System Development</p>
+        <p style="opacity: 0.6;">© 2025 Grok System Development</p>
     </footer>
 </body>
 </html>
