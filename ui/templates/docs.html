@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Docs - Claim Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #1e1e2f; color: #e0e0e0; padding: 50px; }
+        a { color: #9b59b6; } nav a { margin: 0 15px; font-size: 1.1em; }
+        nav { margin-bottom: 40px; text-align: center; }
+        pre { background: #333; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        h1, h2 { color: #9b59b6; text-align: center; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/examples">Examples</a>
+        <a href="/about">About</a>
+        <a href="/docs">API Docs</a>
+    </nav>
+
+    <h1>API Documentation</h1>
+    <h2>Endpoint: POST /analyze</h2>
+    <p>Send JSON with a <code>text</code> field containing the claim or story.</p>
+    <pre>curl -X POST https://claim-checker.onrender.com/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Your claim or news story here"}'</pre>
+
+    <h2>Example Response</h2>
+    <pre>{
+  "result": {
+    "bias_score": 0.75,
+    "confidence": 0.82,
+    "verdict": "Moderate potential bias detected"
+  }
+}</pre>
+</body>
+</html>
