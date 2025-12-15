@@ -13,3 +13,14 @@ def home():
 @app.route('/health', endpoint='health_check')  # Explicit unique endpoint
 def health():
     return "OK", 200
+@app.route('/examples')
+def examples():
+    return render_template('examples.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/docs')
+def docs():
+    return render_template('docs.html')
