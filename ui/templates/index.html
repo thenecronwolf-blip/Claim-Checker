@@ -196,7 +196,15 @@
             btn.disabled = false;
             btn.textContent = "Analyze Statement";
         }
+    } window.onload = () => {
+    const pending = localStorage.getItem('pendingClaim');
+    if (pending) {
+        document.getElementById('inputText').value = pending;
+        localStorage.removeItem('pendingClaim');
+        analyzeText(); // Automatically start the analysis!
     }
+}
+
 </script>
 
 <footer style="margin-top: 80px; padding: 30px; text-align: center; color: #666; font-size: 0.85em; border-top: 1px solid #333; width: 100%;">
