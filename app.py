@@ -1,6 +1,7 @@
 import os
 import random
 import time
+import re
 from flask import Flask, jsonify, render_template, request
 
 app = Flask(
@@ -34,55 +35,79 @@ def donate():
 def health():
     return "OK", 200
 
-# --- THE "BEHAVIORAL" LOGIC ENGINE ---
-# This runs locally. No internet required.
+# --- THE ADVANCED LOGIC ENGINE (v2.0) ---
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
         data = request.get_json(force=True)
-        text = data.get('text', '').lower().strip()
+        raw_text = data.get('text', '')
+        text = raw_text.lower().strip()
         
-        # Simulate "thinking" time for the UI effect
-        time.sleep(1.5) 
+        # Simulate processing time for the "Wow" effect
+        time.sleep(1.2) 
 
-        # 1. LOGIC: Keyword Detection
-        # We look for specific "tells" in the text to generate a verdict.
-        subjective_words = ['amazing', 'terrible', 'best', 'worst', 'love', 'hate', 'unbelievable', 'shocking', 'feel', 'opinion']
-        factual_words = ['study', 'proven', 'data', 'percent', 'according', 'report', 'official', 'record', '2024', 'confirmed']
+        # --- SCOREBOARD ---
+        # We start at 0. Negative = Biased. Positive = Factual.
+        score = 0
         
-        # Count triggers
-        subj_count = sum(1 for word in subjective_words if word in text)
-        fact_count = sum(1 for word in factual_words if word in text)
+        # 1. FACTUAL TRIGGERS (Weighted)
+        # Strong evidence gets +2, Standard gets +1
+        factual_strong = ['study published', 'peer-reviewed', 'meta-analysis', 'official report', 'census bureau', 'proven by', 'verified', 'evidence shows']
+        factual_std = ['according to', 'data', 'percent', '2024', '2023', 'researchers', 'scientists', 'confirmed', 'report', 'statistics', 'record', 'average', 'increase', 'decrease']
         
-        # 2. DECISION MATRIX
-        if fact_count > subj_count:
-            # It looks factual
+        for phrase in factual_strong:
+            if phrase in text: score += 2.5
+        for word in factual_std:
+            if word in text: score += 1.0
+
+        # 2. SUBJECTIVE TRIGGERS (Weighted)
+        # Emotional/Manipulative words get -2 or -1
+        bias_strong = ['unbelievable', 'shocking', 'disgrace', 'destroy', 'catastrophe', 'miracle', 'worst ever', 'best ever', 'hate', 'love', 'stupid', 'genius']
+        bias_std = ['feel', 'opinion', 'believe', 'think', 'maybe', 'rumor', 'people say', 'seems', 'might', 'probably', 'amazing', 'terrible', 'huge']
+        
+        for phrase in bias_strong:
+            if phrase in text: score -= 2.5
+        for word in bias_std:
+            if word in text: score -= 1.0
+
+        # 3. PATTERN DETECTION (Formatting)
+        # ALL CAPS usually implies yelling/bias
+        caps_count = sum(1 for c in raw_text if c.isupper())
+        if len(raw_text) > 10 and (caps_count / len(raw_text) > 0.4):
+            score -= 3.0 # Penalty for shouting
+
+        # Excessive punctuation (e.g. "Real???!!")
+        if "!!" in raw_text or "??" in raw_text:
+            score -= 1.5
+
+        # --- THE VERDICT CALCULATOR ---
+        if score >= 2.0:
+            # High Factuality
             label = "factual"
-            bias_score = random.uniform(0.05, 0.25) # Low bias
-            confidence = random.uniform(0.85, 0.99)
-            verdict = "Likely Factual – This statement contains objective terminology and specific data references."
-        
-        elif subj_count > fact_count:
-            # It looks emotional
-            label = "biased"
-            bias_score = random.uniform(0.65, 0.95) # High bias
-            confidence = random.uniform(0.80, 0.98)
-            verdict = "Subjective / Biased – The text relies heavily on emotional descriptors rather than verifiable data."
-            
-        else:
-            # It's neutral or ambiguous (Random fallback)
-            # This makes the demo feel "alive" because it varies.
-            scenarios = [
-                ("opinion", 0.45, "Opinion – This appears to be a personal viewpoint rather than a verified claim."),
-                ("misinformation", 0.75, "Caution – This matches patterns often seen in unverified sensationalism.")
-            ]
-            selected = random.choice(scenarios)
-            label = selected[0]
-            bias_score = selected[1] + random.uniform(-0.1, 0.1)
-            confidence = random.uniform(0.70, 0.90)
-            verdict = selected[2]
+            bias_score = random.uniform(0.05, 0.20)
+            confidence = random.uniform(0.88, 0.99)
+            verdict = "Likely Factual – This statement cites specific data points or research terminology with neutral phrasing."
 
-        # 3. RETURN THE RESULT
+        elif score <= -2.0:
+            # High Bias
+            label = "biased"
+            bias_score = random.uniform(0.75, 0.98)
+            confidence = random.uniform(0.90, 0.99)
+            verdict = "Highly Subjective – The text relies on emotional language, capitalization, or unverified claims to persuade."
+
+        elif -2.0 < score < 2.0:
+            # The "Grey Area" (Opinion or Mixed)
+            # If the text is very short, confidence drops
+            label = "opinion"
+            bias_score = random.uniform(0.40, 0.60)
+            confidence = random.uniform(0.60, 0.85)
+            
+            if len(text.split()) < 5:
+                verdict = "Insufficient Context – The statement is too short to definitively categorize, but appears neutral."
+            else:
+                verdict = "Mixed / Opinion – This text contains a blend of factual references and personal interpretation."
+
+        # --- RETURN RESULT ---
         return jsonify({
             "result": {
                 "bias_score": round(bias_score, 2),
